@@ -12,18 +12,18 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
-      --bg: #f1f5f9;
+      --bg: #eef2f7;
       --surface: #ffffff;
       --surface-soft: #f8fafc;
       --text: #0f172a;
       --muted: #475569;
-      --border: #e2e8f0;
-      --primary: #0f766e;
-      --primary-hover: #115e59;
+      --border: #cbd5e1;
+      --primary: #1e3a8a;
+      --primary-hover: #172554;
       --accent: #1d4ed8;
       --accent-hover: #1e40af;
-      --pdf: #6d28d9;
-      --pdf-hover: #5b21b6;
+      --pdf: #1e40af;
+      --pdf-hover: #1e3a8a;
       --danger: #b91c1c;
       --danger-hover: #991b1b;
     }
@@ -32,7 +32,7 @@
     }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      background: linear-gradient(180deg, #e2e8f0 0%, var(--bg) 220px);
+      background: linear-gradient(180deg, #dbeafe 0%, var(--bg) 220px);
       margin: 0;
       padding: 24px 16px 48px;
       color: var(--text);
@@ -46,8 +46,8 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-top: 4px solid var(--primary);
-      border-radius: 14px;
-      padding: 22px 24px;
+      border-radius: 12px;
+      padding: 20px 24px;
       margin-bottom: 20px;
       box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
       display: flex;
@@ -65,7 +65,7 @@
       width: 58px;
       height: 58px;
       object-fit: contain;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid var(--border);
       background: var(--surface-soft);
       padding: 4px;
@@ -73,31 +73,34 @@
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 22px 24px;
+      border-radius: 12px;
+      padding: 20px 24px;
       margin-bottom: 20px;
       box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
     }
     h1 {
       margin: 0;
-      font-size: 22px;
+      font-size: 21px;
       font-weight: 700;
       letter-spacing: -0.02em;
+      color: var(--primary);
     }
     h2 {
-      margin: 0 0 12px;
-      font-size: 18px;
+      margin: 0 0 10px;
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: -0.01em;
+      color: var(--text);
     }
     h3 {
       margin: 18px 0 8px;
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 600;
+      color: var(--primary);
     }
     .subtitle {
       margin: 4px 0 0;
-      font-size: 13.5px;
+      font-size: 13px;
       color: var(--muted);
     }
     .grid-2 {
@@ -106,28 +109,28 @@
       gap: 16px;
     }
     .upload-box {
-      border: 1.5px dashed #cbd5e1;
-      border-radius: 12px;
+      border: 1.5px dashed #94a3b8;
+      border-radius: 10px;
       padding: 16px;
       background: var(--surface-soft);
       transition: border-color 0.2s, background 0.2s;
     }
     .upload-box:hover {
       border-color: var(--primary);
-      background: #f0fdfa;
+      background: #eff6ff;
     }
     label.field-label {
       display: block;
       font-weight: 600;
       margin-bottom: 8px;
-      font-size: 13.5px;
+      font-size: 13px;
       color: var(--text);
     }
     input[type="date"], input[type="file"], select, input[type="text"] {
-      padding: 9px 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 13.5px;
+      padding: 8px 12px;
+      border: 1px solid #94a3b8;
+      border-radius: 7px;
+      font-size: 13px;
       font-family: inherit;
       background: #fff;
       color: var(--text);
@@ -139,7 +142,7 @@
     input[type="text"].remark-input {
       width: 100%;
       min-width: 150px;
-      border-color: #f59e0b;
+      border-color: #d97706;
       background: #fffbeb;
     }
     .controls-row {
@@ -149,16 +152,16 @@
       gap: 12px;
       margin-top: 16px;
       padding-top: 14px;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid #e2e8f0;
     }
     button {
       background: var(--primary);
       color: #fff;
       border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
+      padding: 9px 15px;
+      border-radius: 7px;
       cursor: pointer;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 600;
       font-family: inherit;
       transition: background 0.15s, transform 0.05s;
@@ -191,33 +194,33 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin: 12px 0 16px;
+      margin: 12px 0 14px;
     }
     .stat-pill {
-      background: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      color: #0f172a;
-      padding: 6px 13px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      padding: 5px 12px;
       border-radius: 999px;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
     }
     .table-responsive {
       width: 100%;
       overflow-x: auto;
-      border-radius: 10px;
+      border-radius: 8px;
       border: 1px solid var(--border);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 13px;
+      font-size: 12.5px;
       background: #fff;
     }
     th, td {
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid #e2e8f0;
       border-right: 1px solid #f1f5f9;
-      padding: 9px 10px;
+      padding: 8px 10px;
       text-align: left;
       white-space: nowrap;
     }
@@ -225,32 +228,33 @@
       border-right: none;
     }
     th {
-      background: #0f172a;
-      color: #f8fafc;
+      background: #1e3a8a;
+      color: #ffffff;
       font-weight: 600;
-      font-size: 12.5px;
+      font-size: 12px;
+      letter-spacing: 0.01em;
     }
     tbody tr:nth-child(even) {
       background: #f8fafc;
     }
     tbody tr:hover {
-      background: #f0fdfa;
+      background: #eff6ff;
     }
     .badge {
       display: inline-block;
-      padding: 3px 8px;
+      padding: 2px 8px;
       border-radius: 999px;
       font-weight: 600;
       text-transform: uppercase;
-      font-size: 11px;
+      font-size: 10.5px;
       letter-spacing: 0.02em;
     }
     .present { background: #dcfce7; color: #166534; }
     .late { background: #fef3c7; color: #92400e; }
     .absent { background: #fee2e2; color: #991b1b; }
-    .casual { background: #e0e7ff; color: #3730a3; }
+    .casual { background: #dbeafe; color: #1e40af; }
     .note {
-      font-size: 13px;
+      font-size: 12.5px;
       color: var(--muted);
       margin-top: 10px;
     }
@@ -670,25 +674,25 @@
     const rightMargin = 10;
 
     // Header block from top of company name down to sub-title line
-    const headerTopY = 7.5;
-    const subTitleY = 23.8;
+    const headerTopY = 7.2;
+    const subTitleY = 23.2;
     const headerSpanHeight = subTitleY - headerTopY + 1.2;
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(12.5);
-    doc.setTextColor(15, 23, 42);
-    doc.text("Shodesh Chemical Industries", leftMargin, 11.2);
+    doc.setFontSize(13);
+    doc.setTextColor(30, 58, 138);
+    doc.text("Shodesh Chemical Industries", leftMargin, 11.0);
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.5);
+    doc.setFontSize(8.4);
     doc.setTextColor(71, 85, 105);
-    doc.text("174/4 Muradpur, Bandar, Narayanganj", leftMargin, 15.4);
-    doc.text(`Date: ${dateStr}`, leftMargin, 19.3);
+    doc.text("174/4 Muradpur, Bandar, Narayanganj", leftMargin, 15.1);
+    doc.text(`Date: ${dateStr}`, leftMargin, 19.0);
 
     // Sub-title right below date
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.8);
-    doc.setTextColor(15, 118, 110);
+    doc.setFontSize(9.6);
+    doc.setTextColor(30, 64, 175);
     doc.text(subTitle, leftMargin, subTitleY);
 
     // Large logo on the right spanning from top of company name to bottom of sub-title
@@ -707,11 +711,11 @@
       doc.addImage(logoInfo.dataUrl, "PNG", logoX, logoY, drawW, drawH);
     }
 
-    const fontSize = isLabourPage ? 7.1 : 7.4;
-    const cellPad = isLabourPage ? 1.1 : 1.2;
+    const fontSize = isLabourPage ? 7.0 : 7.3;
+    const cellPad = isLabourPage ? 1.02 : 1.12;
 
     doc.autoTable({
-      startY: 26.2,
+      startY: 25.4,
       head: [headRow],
       body: bodyRows,
       rowPageBreak: "avoid",
@@ -720,13 +724,13 @@
         font: "helvetica",
         fontSize: fontSize,
         cellPadding: cellPad,
-        textColor: [30, 41, 59],
+        textColor: [15, 23, 42],
         lineColor: [203, 213, 225],
         lineWidth: 0.15,
         overflow: "ellipsize"
       },
       headStyles: {
-        fillColor: [15, 118, 110],
+        fillColor: [30, 58, 138],
         textColor: [255, 255, 255],
         fontStyle: "bold",
         cellPadding: cellPad + 0.2
@@ -734,40 +738,45 @@
       alternateRowStyles: {
         fillColor: [248, 250, 252]
       },
-      margin: { left: leftMargin, right: rightMargin, top: 26.2, bottom: 25 }
+      margin: { left: leftMargin, right: rightMargin, top: 25.4, bottom: 28.5 }
     });
 
-    // Reported by block: "Reported by" -> Name -> dash slightly wider than name -> Designation
+    // Reported by block: "Reported by" -> Name -> dash slightly wider than name -> Designation -> Electronic validity line
     const nameText = "Md. Ibrahim Hossain";
-    const baseFooterY = pageHeight - 11.5;
+    const footerBottomAnchor = pageHeight - 10.2;
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.2);
-    doc.setTextColor(51, 65, 85);
-    doc.text("Reported by", leftMargin, baseFooterY - 10.5);
+    doc.setFontSize(8.0);
+    doc.setTextColor(71, 85, 105);
+    doc.text("Reported by", leftMargin, footerBottomAnchor - 13.5);
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8.8);
+    doc.setFontSize(8.6);
     doc.setTextColor(15, 23, 42);
-    doc.text(nameText, leftMargin, baseFooterY - 6.2);
+    doc.text(nameText, leftMargin, footerBottomAnchor - 9.4);
 
     const nameWidth = doc.getTextWidth(nameText);
-    const dashWidth = nameWidth + 5; // slightly wider than name
-    doc.setDrawColor(71, 85, 105);
+    const dashWidth = nameWidth + 5;
+    doc.setDrawColor(30, 58, 138);
     doc.setLineWidth(0.45);
-    doc.line(leftMargin, baseFooterY - 4.3, leftMargin + dashWidth, baseFooterY - 4.3);
+    doc.line(leftMargin, footerBottomAnchor - 7.6, leftMargin + dashWidth, footerBottomAnchor - 7.6);
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8.2);
-    doc.setTextColor(51, 65, 85);
-    doc.text("Responsible Laboratory Chemist", leftMargin, baseFooterY - 0.5);
+    doc.setFontSize(8.0);
+    doc.setTextColor(30, 58, 138);
+    doc.text("Responsible Laboratory Chemist", leftMargin, footerBottomAnchor - 3.8);
+
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(7.2);
+    doc.setTextColor(71, 85, 105);
+    doc.text("This document has been produced electronically and is valid without a signature.", leftMargin, footerBottomAnchor + 0.4);
 
     // Very small print date/time and page number at the bottom footer
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(6.5);
+    doc.setFontSize(6.4);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Printed: ${printedAtText}`, leftMargin, pageHeight - 4.2);
-    doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - rightMargin, pageHeight - 4.2, { align: "right" });
+    doc.text(`Printed: ${printedAtText}`, leftMargin, pageHeight - 4.0);
+    doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - rightMargin, pageHeight - 4.0, { align: "right" });
   }
 
   async function saveAndDownloadPDF() {
