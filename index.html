@@ -195,6 +195,11 @@
       border-color: var(--primary);
       background: #eff6ff;
     }
+    input[type="text"].los-readonly {
+      background: #f1f5f9;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
     .controls-row {
       display: flex;
       flex-wrap: wrap;
@@ -501,7 +506,7 @@
 
       <div class="no-print">
         <h2>All Employees</h2>
-        <p class="subtitle">Select <strong>Permanent Employees</strong> or <strong>Probation Employees</strong>. Promote probation staff to Permanent or add new probation staff below, then click <strong>Save Changes</strong> to persist in browser.</p>
+        <p class="subtitle">Length of Service (LOS) automatically updates daily based on each employee's <strong>DOJ</strong> up to today (<span id="todayLabel"></span>).</p>
 
         <div class="sub-tabs" style="margin-top:12px;">
           <button type="button" id="subPermanentBtn" class="sub-btn active" onclick="switchEmployeeSubTab('Permanent')">Permanent Employees</button>
@@ -540,12 +545,12 @@
             <input type="text" id="newEmpDesig" placeholder="e.g. Chemist" style="width:100%;" />
           </div>
           <div>
-            <label class="field-label" for="newEmpDoj">DOJ</label>
-            <input type="text" id="newEmpDoj" placeholder="e.g. Nov 27, 2026" style="width:100%;" />
+            <label class="field-label" for="newEmpDoj">DOJ (e.g. Nov 27, 2026)</label>
+            <input type="text" id="newEmpDoj" placeholder="e.g. Nov 27, 2026" oninput="syncNewEmpLOS()" style="width:100%;" />
           </div>
           <div>
-            <label class="field-label" for="newEmpLos">LOS</label>
-            <input type="text" id="newEmpLos" placeholder="e.g. 0y 0m 1d" style="width:100%;" />
+            <label class="field-label" for="newEmpLos">LOS (Auto from DOJ)</label>
+            <input type="text" id="newEmpLos" class="los-readonly" placeholder="0y 0m 0d" style="width:100%;" />
           </div>
         </div>
         <div style="margin-top:12px;">
@@ -613,33 +618,33 @@
   };
 
   const DEFAULT_EMPLOYEES = [
-    { id: "SCI 502", name: "Md. Mohin Uddin", dept: "Admin", designation: "Manager", doj: "Aug 10, 2008", los: "18y 3m 18d", status: "Permanent" },
-    { id: "SCI 503", name: "Md.Mohin Uddin (yeakub)", dept: "Production", designation: "Labor Supervisor", doj: "Jun 01, 2009", los: "17y 5m 27d", status: "Permanent" },
-    { id: "SCI 505", name: "Md. Delowar Hossin", dept: "Production", designation: "Labor Supervisor", doj: "Aug 01, 2015", los: "11y 3m 28d", status: "Permanent" },
-    { id: "SCI 507", name: "Yeakub Mia", dept: "Production", designation: "Labour Helper", doj: "Dec 01, 2018", los: "7y 11m 27d", status: "Permanent" },
-    { id: "SCI 508", name: "Mohammad Robiul Islam", dept: "Accounts", designation: "Senior Executive", doj: "Sep 19, 2019", los: "7y 2m 9d", status: "Permanent" },
-    { id: "SCI 509", name: "Md. Shamim Farhad Hero", dept: "Commercial", designation: "Deputy Manager", doj: "Sep 19, 2019", los: "7y 2m 9d", status: "Permanent" },
-    { id: "SCI 511", name: "Md. Firoj Hosan", dept: "Mechanical", designation: "Mechanical Foreman", doj: "Sep 07, 2020", los: "6y 2m 20d", status: "Permanent" },
-    { id: "SCI 515", name: "Abu Hanef", dept: "Admin", designation: "Cook", doj: "Aug 01, 2021", los: "5y 3m 27d", status: "Permanent" },
-    { id: "SCI 519", name: "Md. Azhar Ali", dept: "Electrical", designation: "Senior Electrician", doj: "Aug 01, 2022", los: "4y 3m 27d", status: "Permanent" },
-    { id: "SCI 523", name: "Md Rafiqual Islam", dept: "Store", designation: "Store Keeper", doj: "Oct 01, 2022", los: "4y 1m 27d", status: "Permanent" },
-    { id: "SCI 527", name: "Md. Saiful Islam Khan", dept: "Commercial", designation: "Executive", doj: "Nov 24, 2024", los: "2y 0m 3d", status: "Permanent" },
-    { id: "SCI 529", name: "Md. Tamim ahmed", dept: "Admin", designation: "Office Peon", doj: "Nov 28, 2024", los: "1y 11m 29d", status: "Permanent" },
-    { id: "SCI 531", name: "Md. Kawsar Mia", dept: "Mechanical", designation: "Welder", doj: "Jun 25, 2025", los: "1y 5m 3d", status: "Permanent" },
-    { id: "SCI 532", name: "Mehadi Hasan", dept: "Accounts", designation: "Outdoor Staff", doj: "Jun 28, 2025", los: "1y 4m 31d", status: "Permanent" },
-    { id: "ST930", name: "Md. Kaowsar Khan", dept: "Admin", designation: "Security Superviser", doj: "Dec 01, 2025", los: "0y 11m 27d", status: "Permanent" },
+    { id: "SCI 502", name: "Md. Mohin Uddin", dept: "Admin", designation: "Manager", doj: "Aug 10, 2008", status: "Permanent" },
+    { id: "SCI 503", name: "Md.Mohin Uddin (yeakub)", dept: "Production", designation: "Labor Supervisor", doj: "Jun 01, 2009", status: "Permanent" },
+    { id: "SCI 505", name: "Md. Delowar Hossin", dept: "Production", designation: "Labor Supervisor", doj: "Aug 01, 2015", status: "Permanent" },
+    { id: "SCI 507", name: "Yeakub Mia", dept: "Production", designation: "Labour Helper", doj: "Dec 01, 2018", status: "Permanent" },
+    { id: "SCI 508", name: "Mohammad Robiul Islam", dept: "Accounts", designation: "Senior Executive", doj: "Sep 19, 2019", status: "Permanent" },
+    { id: "SCI 509", name: "Md. Shamim Farhad Hero", dept: "Commercial", designation: "Deputy Manager", doj: "Sep 19, 2019", status: "Permanent" },
+    { id: "SCI 511", name: "Md. Firoj Hosan", dept: "Mechanical", designation: "Mechanical Foreman", doj: "Sep 07, 2020", status: "Permanent" },
+    { id: "SCI 515", name: "Abu Hanef", dept: "Admin", designation: "Cook", doj: "Aug 01, 2021", status: "Permanent" },
+    { id: "SCI 519", name: "Md. Azhar Ali", dept: "Electrical", designation: "Senior Electrician", doj: "Aug 01, 2022", status: "Permanent" },
+    { id: "SCI 523", name: "Md Rafiqual Islam", dept: "Store", designation: "Store Keeper", doj: "Oct 01, 2022", status: "Permanent" },
+    { id: "SCI 527", name: "Md. Saiful Islam Khan", dept: "Commercial", designation: "Executive", doj: "Nov 24, 2024", status: "Permanent" },
+    { id: "SCI 529", name: "Md. Tamim ahmed", dept: "Admin", designation: "Office Peon", doj: "Nov 28, 2024", status: "Permanent" },
+    { id: "SCI 531", name: "Md. Kawsar Mia", dept: "Mechanical", designation: "Welder", doj: "Jun 25, 2025", status: "Permanent" },
+    { id: "SCI 532", name: "Mehadi Hasan", dept: "Accounts", designation: "Outdoor Staff", doj: "Jun 28, 2025", status: "Permanent" },
+    { id: "ST930", name: "Md. Kaowsar Khan", dept: "Admin", designation: "Security Superviser", doj: "Dec 01, 2025", status: "Permanent" },
 
-    { id: "SCI518", name: "Md Mosaraf Hossain", dept: "Electrical", designation: "Electrician", doj: "May 14, 2026", los: "0y 6m 15d", status: "Probation" },
-    { id: "SCI522", name: "Md. Al Amin Mondol", dept: "Commercial", designation: "Executive", doj: "May 23, 2026", los: "0y 6m 6d", status: "Probation" },
-    { id: "SCI535", name: "Md Ibrahim Hossain", dept: "Admin", designation: "Security Guard", doj: "Aug 11, 2026", los: "0y 3m 17d", status: "Probation" },
-    { id: "SCI538", name: "Mahamodur Rahman", dept: "Electrical", designation: "Electrician", doj: "Oct 15, 2025", los: "1y 1m 13d", status: "Probation" },
-    { id: "SCI541", name: "Md. Ibrahim Hossain", dept: "Production", designation: "Assistant Chemist", doj: "Sep 05, 2026", los: "0y 2m 23d", status: "Probation" },
-    { id: "SCI542", name: "Mohammad Rahmatullah", dept: "Store", designation: "Executive", doj: "Sep 19, 2026", los: "0y 2m 9d", status: "Probation" },
-    { id: "SCI543", name: "Md. Zakir Hosen", dept: "Mechanical", designation: "Mechanical Helper", doj: "Oct 03, 2026", los: "0y 1m 25d", status: "Probation" },
-    { id: "SCI544", name: "Md. Shovo", dept: "Admin", designation: "Security Guard", doj: "Oct 10, 2026", los: "0y 1m 18d", status: "Probation" },
-    { id: "SCI545", name: "Md Nazirul Islam", dept: "Mechanical", designation: "Welder", doj: "Nov 01, 2026", los: "0y 0m 27d", status: "Probation" },
-    { id: "SCI670", name: "Indrish Mia", dept: "Operation", designation: "Daily Labour", doj: "Aug 30, 2026", los: "0y 2m 29d", status: "Probation" },
-    { id: "SCI673", name: "Habibur Rahman", dept: "Operation", designation: "Daily Labour", doj: "Aug 30, 2026", los: "0y 2m 29d", status: "Probation" }
+    { id: "SCI518", name: "Md Mosaraf Hossain", dept: "Electrical", designation: "Electrician", doj: "May 14, 2026", status: "Probation" },
+    { id: "SCI522", name: "Md. Al Amin Mondol", dept: "Commercial", designation: "Executive", doj: "May 23, 2026", status: "Probation" },
+    { id: "SCI535", name: "Md Ibrahim Hossain", dept: "Admin", designation: "Security Guard", doj: "Aug 11, 2026", status: "Probation" },
+    { id: "SCI538", name: "Mahamodur Rahman", dept: "Electrical", designation: "Electrician", doj: "Oct 15, 2025", status: "Probation" },
+    { id: "SCI541", name: "Md. Ibrahim Hossain", dept: "Production", designation: "Assistant Chemist", doj: "Sep 05, 2026", status: "Probation" },
+    { id: "SCI542", name: "Mohammad Rahmatullah", dept: "Store", designation: "Executive", doj: "Sep 19, 2026", status: "Probation" },
+    { id: "SCI543", name: "Md. Zakir Hosen", dept: "Mechanical", designation: "Mechanical Helper", doj: "Oct 03, 2026", status: "Probation" },
+    { id: "SCI544", name: "Md. Shovo", dept: "Admin", designation: "Security Guard", doj: "Oct 10, 2026", status: "Probation" },
+    { id: "SCI545", name: "Md Nazirul Islam", dept: "Mechanical", designation: "Welder", doj: "Nov 01, 2026", status: "Probation" },
+    { id: "SCI670", name: "Indrish Mia", dept: "Operation", designation: "Daily Labour", doj: "Aug 30, 2026", status: "Probation" },
+    { id: "SCI673", name: "Habibur Rahman", dept: "Operation", designation: "Daily Labour", doj: "Aug 30, 2026", status: "Probation" }
   ];
 
   const DEFAULT_25_CONTACTS = [
@@ -670,7 +675,7 @@
     { name: "Md Zahidul Islam", dept: "Sales & Marketing", designation: "Senior Executive", phone: "8801841094652", email: "marketing2@shodesh-chemicals.com" }
   ];
 
-  const EMPLOYEE_STORAGE_KEY = "shodesh_employees_list_v1";
+  const EMPLOYEE_STORAGE_KEY = "shodesh_employees_list_v2";
   const CONTACT_STORAGE_KEY = "shodesh_25_staff_contacts_v1";
 
   let employeesList = [];
@@ -678,6 +683,55 @@
   let staffContacts = [];
   let currentStaff = [];
   let currentLabour = [];
+
+  function parseDOJDate(dojStr) {
+    if (!dojStr) return null;
+    const raw = String(dojStr).trim();
+    const isoMatch = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(raw);
+    if (isoMatch) {
+      return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+    }
+    const parsed = new Date(raw);
+    if (!isNaN(parsed.getTime())) {
+      return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+    }
+    return null;
+  }
+
+  function calculateLOSFromDOJ(dojStr, fallbackLos = "") {
+    const start = parseDOJDate(dojStr);
+    if (!start) return fallbackLos || "0y 0m 0d";
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (today < start) return "0y 0m 0d";
+
+    let years = today.getFullYear() - start.getFullYear();
+    let months = today.getMonth() - start.getMonth();
+    let days = today.getDate() - start.getDate();
+
+    if (days < 0) {
+      months -= 1;
+      const prevMonthDays = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+      days += prevMonthDays;
+    }
+    if (months < 0) {
+      years -= 1;
+      months += 12;
+    }
+
+    return `${years}y ${months}m ${days}d`;
+  }
+
+  function formatTodayDisplay() {
+    const now = new Date();
+    return now.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  }
+
+  function syncNewEmpLOS() {
+    const dojVal = document.getElementById("newEmpDoj").value;
+    document.getElementById("newEmpLos").value = calculateLOSFromDOJ(dojVal, "0y 0m 0d");
+  }
 
   function switchView(viewName) {
     document.getElementById("attendanceView").style.display = viewName === "attendance" ? "block" : "none";
@@ -717,6 +771,8 @@
   }
 
   function renderEmployeesSection() {
+    document.getElementById("todayLabel").textContent = formatTodayDisplay();
+
     const permCount = employeesList.filter(e => e.status === "Permanent").length;
     const probCount = employeesList.filter(e => e.status === "Probation").length;
 
@@ -742,7 +798,7 @@
             <th>Department</th>
             <th>Designation</th>
             <th>DOJ</th>
-            <th>LOS</th>
+            <th>LOS (Auto Daily)</th>
             <th>Status</th>
             <th class="no-print">Action</th>
           </tr>
@@ -755,6 +811,7 @@
     } else {
       filtered.forEach((item, idx) => {
         const { emp, originalIndex } = item;
+        const autoLos = calculateLOSFromDOJ(emp.doj, emp.customLos || "");
         const actionBtn = emp.status === "Probation"
           ? `<button type="button" class="success mini-btn" onclick="promoteToPermanent(${originalIndex})">Move to Permanent</button> `
           : "";
@@ -765,8 +822,8 @@
             <td><input type="text" class="cell-edit" value="${escapeAttr(emp.name)}" oninput="employeesList[${originalIndex}].name = this.value" /></td>
             <td><input type="text" class="cell-edit" value="${escapeAttr(emp.dept)}" oninput="employeesList[${originalIndex}].dept = this.value" /></td>
             <td><input type="text" class="cell-edit" value="${escapeAttr(emp.designation)}" oninput="employeesList[${originalIndex}].designation = this.value" /></td>
-            <td><input type="text" class="cell-edit" value="${escapeAttr(emp.doj)}" oninput="employeesList[${originalIndex}].doj = this.value" /></td>
-            <td><input type="text" class="cell-edit" value="${escapeAttr(emp.los)}" oninput="employeesList[${originalIndex}].los = this.value" /></td>
+            <td><input type="text" class="cell-edit" value="${escapeAttr(emp.doj)}" oninput="onEmployeeDojChange(${originalIndex}, this.value)" /></td>
+            <td><input type="text" id="losCell_${originalIndex}" class="cell-edit los-readonly" value="${escapeAttr(autoLos)}" oninput="employeesList[${originalIndex}].customLos = this.value" /></td>
             <td>
               <select class="cell-edit" onchange="changeEmployeeStatus(${originalIndex}, this.value)">
                 <option value="Permanent" ${emp.status === "Permanent" ? "selected" : ""}>Permanent</option>
@@ -784,6 +841,14 @@
 
     html += `</tbody></table>`;
     document.getElementById("employeesTableWrap").innerHTML = html;
+  }
+
+  function onEmployeeDojChange(index, newDoj) {
+    employeesList[index].doj = newDoj;
+    delete employeesList[index].customLos;
+    const updatedLos = calculateLOSFromDOJ(newDoj, "0y 0m 0d");
+    const losInput = document.getElementById(`losCell_${index}`);
+    if (losInput) losInput.value = updatedLos;
   }
 
   function promoteToPermanent(index) {
@@ -816,7 +881,6 @@
     const deptVal = document.getElementById("newEmpDept").value.trim();
     const desigVal = document.getElementById("newEmpDesig").value.trim();
     const dojVal = document.getElementById("newEmpDoj").value.trim();
-    const losVal = document.getElementById("newEmpLos").value.trim();
 
     if (!nameVal) {
       alert("Please enter the employee's Name.");
@@ -828,8 +892,7 @@
       name: nameVal,
       dept: deptVal || "N/A",
       designation: desigVal || "N/A",
-      doj: dojVal || "N/A",
-      los: losVal || "0y 0m 0d",
+      doj: dojVal || formatTodayDisplay(),
       status: "Probation"
     });
 
@@ -843,7 +906,7 @@
     document.getElementById("newEmpLos").value = "";
 
     renderEmployeesSection();
-    document.getElementById("employeeSaveMsg").textContent = `${nameVal} added to Probation Employees and saved.`;
+    document.getElementById("employeeSaveMsg").textContent = `${nameVal} added to Probation Employees with auto LOS and saved.`;
   }
 
   function saveEmployeesData() {
