@@ -344,7 +344,7 @@
         color: #0f172a !important;
         font-size: 10px;
       }
-      .no-print, .nav-tabs, .sub-tabs, .top-banner, #attendanceView, #contactsView, .add-box {
+      .no-print, .nav-tabs, .sub-tabs, .top-banner, #employeesView, #contactsView, #dailyMonthlySubView, .add-box {
         display: none !important;
       }
       .container, .card {
@@ -435,61 +435,112 @@
   <!-- ATTENDANCE VIEW -->
   <div id="attendanceView">
     <div class="card">
-      <h2>Upload Attendance Files</h2>
-      <p class="subtitle">Upload Narayanganj CSV/XLSX file + optional Dhaka CSV/XLSX file (for cross-unit staff like SCI530).</p>
+      <h2>Attendance Reports</h2>
+      <p class="subtitle">Switch between <strong>Daily & Monthly Attendance</strong> and <strong>Individual Attendance</strong>.</p>
+      <div class="sub-tabs" style="margin-top:12px; margin-bottom:0;">
+        <button type="button" id="subDailyMonthlyBtn" class="sub-btn active" onclick="switchAttendanceSubTab('dailyMonthly')">Daily & Monthly Attendance</button>
+        <button type="button" id="subIndividualBtn" class="sub-btn" onclick="switchAttendanceSubTab('individual')">Individual Attendance</button>
+      </div>
+    </div>
 
-      <div class="grid-2" style="margin-top: 14px;">
-        <div class="upload-box">
-          <label class="field-label" for="plantFile">1. Narayanganj / Plant Attendance File (Required)</label>
-          <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" />
+    <!-- DAILY & MONTHLY ATTENDANCE SUB-VIEW -->
+    <div id="dailyMonthlySubView">
+      <div class="card">
+        <h2>Upload Attendance Files</h2>
+        <p class="subtitle">Upload Narayanganj CSV/XLSX file + optional Dhaka CSV/XLSX file (for cross-unit staff like SCI530).</p>
+
+        <div class="grid-2" style="margin-top: 14px;">
+          <div class="upload-box">
+            <label class="field-label" for="plantFile">1. Narayanganj / Plant Attendance File (Required)</label>
+            <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" />
+          </div>
+          <div class="upload-box">
+            <label class="field-label" for="dhakaFile">2. Dhaka File (Optional — for SCI530 Md Zahidul Islam)</label>
+            <input type="file" id="dhakaFile" accept=".csv,.xlsx,.xls" />
+          </div>
         </div>
-        <div class="upload-box">
-          <label class="field-label" for="dhakaFile">2. Dhaka File (Optional — for SCI530 Md Zahidul Islam)</label>
-          <input type="file" id="dhakaFile" accept=".csv,.xlsx,.xls" />
+
+        <div class="controls-row">
+          <label class="field-label" for="reportDate" style="margin:0;">Report Date:</label>
+          <input type="date" id="reportDate" value="2026-11-26" />
+          <button onclick="processFiles()">Load & Filter Reports</button>
         </div>
       </div>
 
-      <div class="controls-row">
-        <label class="field-label" for="reportDate" style="margin:0;">Report Date:</label>
-        <input type="date" id="reportDate" value="2026-11-26" />
-        <button onclick="processFiles()">Load & Filter Reports</button>
+      <div class="card" id="staffSection" style="display:none;">
+        <h2>Office Staff Attendance List</h2>
+        <div class="stats" id="staffStats"></div>
+        <div class="table-responsive" id="staffTableWrap"></div>
+      </div>
+
+      <div class="card" id="labourSection" style="display:none;">
+        <h2>Daily Labour Attendance List (Present & Late Only — No Remarks)</h2>
+        <div class="stats" id="labourStats"></div>
+        <div class="table-responsive" id="labourTableWrap"></div>
+      </div>
+
+      <div class="card" id="actionSection" style="display:none;">
+        <h2>Save & Export Reports</h2>
+        <p class="subtitle">Save daily attendance data and export Excel (.xlsx) or 2-page A4 PDF with company logo.</p>
+        <div class="controls-row" style="border-top:none; padding-top:6px; margin-top:8px;">
+          <button onclick="saveDailyData()">Save Daily Data</button>
+          <button class="secondary" onclick="saveAndDownloadExcel()">Save & Download Excel (.xlsx)</button>
+          <button class="pdf-btn" onclick="saveAndDownloadPDF()">Save & Download PDF (2 A4 Pages)</button>
+        </div>
+        <div id="saveMsg" class="note status-banner"></div>
+      </div>
+
+      <div class="card">
+        <h2>Monthly Report (From Saved Daily Data in This Browser)</h2>
+        <div class="controls-row" style="border-top:none; padding-top:0; margin-top:8px;">
+          <label class="field-label" for="monthSelect" style="margin:0;">Select Month:</label>
+          <select id="monthSelect" onchange="renderMonthly()">
+            <option value="2026-11">2026-11</option>
+          </select>
+          <button onclick="renderMonthly()">View Monthly Summary</button>
+          <button class="danger" onclick="clearSavedData()">Clear Saved Browser Data</button>
+        </div>
+        <div id="monthlyWrap" style="margin-top:14px;"></div>
       </div>
     </div>
 
-    <div class="card" id="staffSection" style="display:none;">
-      <h2>Office Staff Attendance List</h2>
-      <div class="stats" id="staffStats"></div>
-      <div class="table-responsive" id="staffTableWrap"></div>
-    </div>
+    <!-- INDIVIDUAL ATTENDANCE SUB-VIEW -->
+    <div id="individualSubView" style="display:none;">
+      <div class="card">
+        <div class="print-only-header">
+          <div>
+            <h2>Shodesh Chemical Industries</h2>
+            <p id="indPrintSubtitle">174/4 Muradpur, Bandar, Narayanganj — Individual Attendance Report</p>
+          </div>
+          <img src="logo.png" alt="Company Logo" onerror="this.style.display='none'" />
+        </div>
 
-    <div class="card" id="labourSection" style="display:none;">
-      <h2>Daily Labour Attendance List (Present & Late Only — No Remarks)</h2>
-      <div class="stats" id="labourStats"></div>
-      <div class="table-responsive" id="labourTableWrap"></div>
-    </div>
+        <div class="no-print">
+          <h2>Individual Attendance Report</h2>
+          <p class="subtitle">Select a month and employee from saved daily attendance records to view monthly Present, Late, Absent, and Casual Leave counts along with day-by-day details.</p>
 
-    <div class="card" id="actionSection" style="display:none;">
-      <h2>Save & Export Reports</h2>
-      <p class="subtitle">Save daily attendance data and export Excel (.xlsx) or 2-page A4 PDF with company logo.</p>
-      <div class="controls-row" style="border-top:none; padding-top:6px; margin-top:8px;">
-        <button onclick="saveDailyData()">Save Daily Data</button>
-        <button class="secondary" onclick="saveAndDownloadExcel()">Save & Download Excel (.xlsx)</button>
-        <button class="pdf-btn" onclick="saveAndDownloadPDF()">Save & Download PDF (2 A4 Pages)</button>
+          <div class="controls-row" style="border-top:none; padding-top:6px; margin-top:8px;">
+            <label class="field-label" for="indMonthSelect" style="margin:0;">Month:</label>
+            <select id="indMonthSelect" onchange="populateIndividualEmployeeDropdown(); renderIndividualAttendance();"></select>
+
+            <label class="field-label" for="indEmployeeSelect" style="margin:0;">Employee:</label>
+            <select id="indEmployeeSelect" onchange="renderIndividualAttendance()"></select>
+
+            <button type="button" onclick="renderIndividualAttendance()">View Individual Report</button>
+            <button type="button" class="secondary" onclick="window.print()">Print Report</button>
+          </div>
+        </div>
+
+        <div id="individualReportWrap" style="margin-top:16px;"></div>
+
+        <div class="print-only-footer">
+          <div>Reported by</div>
+          <div><strong>Md. Ibrahim Hossain</strong></div>
+          <div class="print-sig-line"></div>
+          <div>Responsible Laboratory Chemist</div>
+          <div style="margin-top:4px; font-style:italic; color:#64748b;">This document has been produced electronically and is valid without a signature.</div>
+        </div>
       </div>
-      <div id="saveMsg" class="note status-banner"></div>
-    </div>
-
-    <div class="card">
-      <h2>Monthly Report (From Saved Daily Data in This Browser)</h2>
-      <div class="controls-row" style="border-top:none; padding-top:0; margin-top:8px;">
-        <label class="field-label" for="monthSelect" style="margin:0;">Select Month:</label>
-        <select id="monthSelect" onchange="renderMonthly()">
-          <option value="2026-11">2026-11</option>
-        </select>
-        <button onclick="renderMonthly()">View Monthly Summary</button>
-        <button class="danger" onclick="clearSavedData()">Clear Saved Browser Data</button>
-      </div>
-      <div id="monthlyWrap" style="margin-top:14px;"></div>
     </div>
   </div>
 
@@ -680,6 +731,7 @@
 
   let employeesList = [];
   let activeEmployeeSubTab = "Permanent";
+  let activeAttendanceSubTab = "dailyMonthly";
   let staffContacts = [];
   let currentStaff = [];
   let currentLabour = [];
@@ -742,11 +794,182 @@
     document.getElementById("tabEmployeesBtn").classList.toggle("active", viewName === "employees");
     document.getElementById("tabContactsBtn").classList.toggle("active", viewName === "contacts");
 
-    if (viewName === "employees") {
+    if (viewName === "attendance") {
+      syncIndividualDropdowns();
+      if (activeAttendanceSubTab === "individual") {
+        renderIndividualAttendance();
+      }
+    } else if (viewName === "employees") {
       renderEmployeesSection();
     } else if (viewName === "contacts") {
       renderContactsTable();
     }
+  }
+
+  function switchAttendanceSubTab(subName) {
+    activeAttendanceSubTab = subName;
+    const isIndividual = subName === "individual";
+    document.getElementById("subDailyMonthlyBtn").classList.toggle("active", !isIndividual);
+    document.getElementById("subIndividualBtn").classList.toggle("active", isIndividual);
+    document.getElementById("dailyMonthlySubView").style.display = isIndividual ? "none" : "block";
+    document.getElementById("individualSubView").style.display = isIndividual ? "block" : "none";
+
+    if (isIndividual) {
+      syncIndividualDropdowns();
+      renderIndividualAttendance();
+    }
+  }
+
+  function syncIndividualDropdowns() {
+    const allSaved = JSON.parse(localStorage.getItem("attendance_records_v1") || "{}");
+    const dates = Object.keys(allSaved).sort();
+    const months = [...new Set(dates.map(d => d.slice(0, 7)))].sort().reverse();
+    const monthSel = document.getElementById("indMonthSelect");
+    const prevMonth = monthSel.value;
+
+    if (!months.length) {
+      monthSel.innerHTML = `<option value="2026-11">2026-11</option>`;
+    } else {
+      monthSel.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join("");
+      if (months.includes(prevMonth)) monthSel.value = prevMonth;
+    }
+
+    populateIndividualEmployeeDropdown();
+  }
+
+  function populateIndividualEmployeeDropdown() {
+    const month = document.getElementById("indMonthSelect").value;
+    const allSaved = JSON.parse(localStorage.getItem("attendance_records_v1") || "{}");
+    const dayKeys = Object.keys(allSaved).filter(d => d.startsWith(month)).sort();
+
+    const empMap = {};
+    for (const d of dayKeys) {
+      const rec = allSaved[d];
+      for (const s of (rec.staff || [])) {
+        if (s.ID && !empMap[s.ID]) {
+          empMap[s.ID] = { id: s.ID, name: s.Name, designation: s.Designation };
+        }
+      }
+      for (const l of (rec.labour || [])) {
+        if (l.ID && !empMap[l.ID]) {
+          empMap[l.ID] = { id: l.ID, name: l.Name, designation: l.Designation };
+        }
+      }
+    }
+
+    const empSel = document.getElementById("indEmployeeSelect");
+    const prevEmp = empSel.value;
+    const list = Object.values(empMap);
+
+    if (!list.length) {
+      empSel.innerHTML = `<option value="">No saved employees in ${month}</option>`;
+      return;
+    }
+
+    empSel.innerHTML = list
+      .map(e => `<option value="${escapeAttr(e.id)}">${escapeAttr(e.id)} — ${escapeAttr(e.name)} (${escapeAttr(e.designation)})</option>`)
+      .join("");
+
+    if (empMap[prevEmp]) {
+      empSel.value = prevEmp;
+    }
+  }
+
+  function renderIndividualAttendance() {
+    const month = document.getElementById("indMonthSelect").value;
+    const empId = document.getElementById("indEmployeeSelect").value;
+    const allSaved = JSON.parse(localStorage.getItem("attendance_records_v1") || "{}");
+    const dayKeys = Object.keys(allSaved).filter(d => d.startsWith(month)).sort();
+
+    if (!dayKeys.length || !empId) {
+      document.getElementById("individualReportWrap").innerHTML =
+        `<p class="note">No saved daily attendance records found for <strong>${month}</strong>. Save daily attendance first in <strong>Daily & Monthly Attendance</strong>.</p>`;
+      return;
+    }
+
+    let empInfo = { id: empId, name: "", designation: "", department: "" };
+    let presentDays = 0;
+    let lateDays = 0;
+    let absentDays = 0;
+    let casualDays = 0;
+    const logs = [];
+
+    for (const d of dayKeys) {
+      const rec = allSaved[d];
+      const combined = [...(rec.staff || []), ...(rec.labour || [])];
+      const found = combined.find(item => String(item.ID).trim().toLowerCase() === String(empId).trim().toLowerCase());
+
+      if (found) {
+        if (!empInfo.name) empInfo.name = found.Name || "";
+        if (!empInfo.designation) empInfo.designation = found.Designation || "";
+        if (!empInfo.department) empInfo.department = found.Department || "";
+
+        const st = norm(found.Status || "");
+        if (st === "present") presentDays++;
+        else if (st === "late") lateDays++;
+        else if (st === "absent") absentDays++;
+        else if (st.includes("casual")) casualDays++;
+
+        logs.push({
+          date: d,
+          inTime: found.In_Time || "00:00:00",
+          lateTime: found.Late_Time || "00:00:00",
+          status: found.Status || "",
+          remarks: found.Remarks || ""
+        });
+      }
+    }
+
+    document.getElementById("indPrintSubtitle").textContent =
+      `174/4 Muradpur, Bandar, Narayanganj — Individual Attendance (${empInfo.name || empId} | ${month})`;
+
+    let html = `
+      <p class="note">
+        <strong>Employee:</strong> ${escapeAttr(empInfo.name || "N/A")} (${escapeAttr(empInfo.id)}) |
+        <strong>Designation:</strong> ${escapeAttr(empInfo.designation || "N/A")} |
+        <strong>Month:</strong> ${escapeAttr(month)} |
+        <strong>Recorded Days:</strong> ${logs.length}
+      </p>
+      <div class="stats">
+        <div class="stat-pill">Present: ${presentDays}</div>
+        <div class="stat-pill">Late: ${lateDays}</div>
+        <div class="stat-pill">Absent: ${absentDays}</div>
+        <div class="stat-pill">Casual Leave: ${casualDays}</div>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>SL</th>
+              <th>Date</th>
+              <th>In Time</th>
+              <th>Late Time</th>
+              <th>Status</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    if (!logs.length) {
+      html += `<tr><td colspan="6" style="text-align:center; color:#64748b;">No records found for this employee in ${month}.</td></tr>`;
+    } else {
+      logs.forEach((row, i) => {
+        html += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${escapeAttr(row.date)}</td>
+            <td>${escapeAttr(row.inTime)}</td>
+            <td>${escapeAttr(row.lateTime)}</td>
+            <td>${statusBadge(row.status)}</td>
+            <td>${escapeAttr(row.remarks || "—")}</td>
+          </tr>
+        `;
+      });
+    }
+
+    html += `</tbody></table></div>`;
+    document.getElementById("individualReportWrap").innerHTML = html;
   }
 
   function loadEmployees() {
@@ -1218,6 +1441,7 @@
     };
     localStorage.setItem(storageKey, JSON.stringify(allSaved));
     populateMonthDropdown(Object.keys(allSaved));
+    syncIndividualDropdowns();
     document.getElementById("saveMsg").textContent = `Daily attendance data saved for ${dateStr}.`;
     return dateStr;
   }
@@ -1514,7 +1738,9 @@
   function clearSavedData() {
     localStorage.removeItem("attendance_records_v1");
     populateMonthDropdown([]);
+    syncIndividualDropdowns();
     document.getElementById("monthlyWrap").innerHTML = `<p class="note">Saved browser data cleared.</p>`;
+    document.getElementById("individualReportWrap").innerHTML = `<p class="note">Saved browser data cleared.</p>`;
   }
 
   window.onload = () => {
@@ -1524,6 +1750,7 @@
     renderContactsTable();
     const allSaved = JSON.parse(localStorage.getItem("attendance_records_v1") || "{}");
     populateMonthDropdown(Object.keys(allSaved));
+    syncIndividualDropdowns();
   };
 </script>
 </body>
