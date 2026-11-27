@@ -40,6 +40,49 @@
       color: var(--text);
       line-height: 1.5;
     }
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--primary);
+      border-radius: 10px;
+      padding: 24px;
+    }
+    .auth-field {
+      margin-bottom: 14px;
+    }
+    .auth-field input {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 13.5px;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff;
+      color: var(--text);
+    }
+    .auth-field input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .auth-error {
+      margin-top: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--danger);
+      min-height: 18px;
+    }
     .container {
       max-width: 1240px;
       margin: 0 auto;
@@ -329,7 +372,7 @@
         font-family: Arial, Helvetica, sans-serif !important;
         font-size: 10px;
       }
-      .no-print, .nav-tabs, .sub-tabs, .top-banner, #employeesView, #contactsView, #dailyMonthlySubView, .add-box {
+      .no-print, .nav-tabs, .sub-tabs, .top-banner, .auth-overlay, #employeesView, #contactsView, #dailyMonthlySubView, .add-box {
         display: none !important;
       }
       .container, .card {
@@ -404,7 +447,26 @@
   </style>
 </head>
 <body>
-<div class="container">
+<div id="authGate" class="auth-overlay">
+  <div class="auth-card">
+    <h2 style="color: var(--primary); margin-bottom: 4px;">System Login</h2>
+    <p class="subtitle" style="margin-bottom: 16px;"><span class="company-brand-title">Shodesh Chemical Industries</span> — Attendance Portal</p>
+    <form onsubmit="handleLogin(event)">
+      <div class="auth-field">
+        <label class="field-label" for="loginIdInput">Login ID</label>
+        <input type="text" id="loginIdInput" autocomplete="username" required />
+      </div>
+      <div class="auth-field">
+        <label class="field-label" for="loginPassInput">Password</label>
+        <input type="password" id="loginPassInput" autocomplete="current-password" required />
+      </div>
+      <button type="submit" style="width: 100%;">Login</button>
+      <div id="loginErrorMsg" class="auth-error"></div>
+    </form>
+  </div>
+</div>
+
+<div class="container" id="mainAppContainer" style="display:none;">
   <div class="top-banner">
     <div class="brand-block">
       <img src="logo.png" alt="Company Logo" class="brand-logo-preview" onerror="this.style.display='none'" />
@@ -412,6 +474,9 @@
         <h1>Daily & Monthly Attendance Report System</h1>
         <p class="subtitle"><span class="company-brand-title">Shodesh Chemical Industries</span> — 174/4 Muradpur, Bandar, Narayanganj</p>
       </div>
+    </div>
+    <div>
+      <button type="button" class="danger mini-btn" onclick="handleLogout()">Logout</button>
     </div>
   </div>
 
@@ -644,6 +709,10 @@
 </div>
 
 <script>
+  const AUTH_LOGIN_ID = "attendance";
+  const AUTH_PASSWORD = ["S", "C", "I", "5", "4", "1"].join("");
+  const AUTH_SESSION_KEY = "shodesh_attendance_auth_v1";
+
   const CROSS_UNIT_IDS = ["sci530"];
   const CROSS_UNIT_DEFAULTS = {
     "sci530": {
@@ -724,6 +793,39 @@
   let staffContacts = [];
   let currentStaff = [];
   let currentLabour = [];
+
+  function isAuthenticated() {
+    return sessionStorage.getItem(AUTH_SESSION_KEY) === "granted";
+  }
+
+  function applyAuthState() {
+    const authed = isAuthenticated();
+    document.getElementById("authGate").style.display = authed ? "none" : "flex";
+    document.getElementById("mainAppContainer").style.display = authed ? "block" : "none";
+  }
+
+  function handleLogin(event) {
+    event.preventDefault();
+    const idVal = document.getElementById("loginIdInput").value;
+    const passVal = document.getElementById("loginPassInput").value;
+
+    if (idVal === AUTH_LOGIN_ID && passVal === AUTH_PASSWORD) {
+      sessionStorage.setItem(AUTH_SESSION_KEY, "granted");
+      document.getElementById("loginErrorMsg").textContent = "";
+      document.getElementById("loginPassInput").value = "";
+      applyAuthState();
+    } else {
+      document.getElementById("loginErrorMsg").textContent = "Invalid Login ID or Password.";
+    }
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem(AUTH_SESSION_KEY);
+    document.getElementById("loginIdInput").value = "";
+    document.getElementById("loginPassInput").value = "";
+    document.getElementById("loginErrorMsg").textContent = "";
+    applyAuthState();
+  }
 
   function formatDateDDMMYYYY(dateStr) {
     const raw = String(dateStr || "").trim();
@@ -1792,6 +1894,7 @@
   }
 
   window.onload = () => {
+    applyAuthState();
     loadEmployees();
     loadContacts();
     renderEmployeesSection();
