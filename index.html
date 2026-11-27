@@ -26,6 +26,8 @@
       --pdf-hover: #1e3a8a;
       --danger: #b91c1c;
       --danger-hover: #991b1b;
+      --success: #047857;
+      --success-hover: #065f46;
     }
     * {
       box-sizing: border-box;
@@ -70,24 +72,24 @@
       background: var(--surface-soft);
       padding: 4px;
     }
-    .nav-tabs {
+    .nav-tabs, .sub-tabs {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
-    .nav-btn {
+    .nav-btn, .sub-btn {
       background: var(--surface);
       color: var(--primary);
       border: 1.5px solid var(--primary);
-      padding: 10px 18px;
+      padding: 9px 16px;
       border-radius: 8px;
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.15s;
     }
-    .nav-btn.active {
+    .nav-btn.active, .sub-btn.active {
       background: var(--primary);
       color: #ffffff;
     }
@@ -129,6 +131,19 @@
       grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
       gap: 16px;
     }
+    .add-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .add-box {
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 18px;
+    }
     .upload-box {
       border: 1.5px dashed #94a3b8;
       border-radius: 10px;
@@ -143,12 +158,12 @@
     label.field-label {
       display: block;
       font-weight: 600;
-      margin-bottom: 8px;
-      font-size: 13px;
+      margin-bottom: 6px;
+      font-size: 12.5px;
       color: var(--text);
     }
     input[type="date"], input[type="file"], select, input[type="text"] {
-      padding: 8px 12px;
+      padding: 8px 10px;
       border: 1px solid #94a3b8;
       border-radius: 7px;
       font-size: 13px;
@@ -166,16 +181,16 @@
       border-color: #d97706;
       background: #fffbeb;
     }
-    input[type="text"].contact-edit {
+    input[type="text"].cell-edit, select.cell-edit {
       width: 100%;
-      min-width: 130px;
-      padding: 6px 8px;
-      font-size: 12.5px;
+      min-width: 95px;
+      padding: 5px 7px;
+      font-size: 12px;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
       background: #f8fafc;
     }
-    input[type="text"].contact-edit:focus {
+    input[type="text"].cell-edit:focus, select.cell-edit:focus {
       outline: none;
       border-color: var(--primary);
       background: #eff6ff;
@@ -184,9 +199,9 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 12px;
-      margin-top: 16px;
-      padding-top: 14px;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 12px;
       border-top: 1px solid #e2e8f0;
     }
     button {
@@ -219,11 +234,22 @@
     button.pdf-btn:hover {
       background: var(--pdf-hover);
     }
+    button.success {
+      background: var(--success);
+    }
+    button.success:hover {
+      background: var(--success-hover);
+    }
     button.danger {
       background: var(--danger);
     }
     button.danger:hover {
       background: var(--danger-hover);
+    }
+    button.mini-btn {
+      padding: 5px 9px;
+      font-size: 11.5px;
+      border-radius: 6px;
     }
     .stats {
       display: flex;
@@ -255,7 +281,7 @@
     th, td {
       border-bottom: 1px solid #e2e8f0;
       border-right: 1px solid #f1f5f9;
-      padding: 8px 10px;
+      padding: 7px 9px;
       text-align: left;
       white-space: nowrap;
     }
@@ -294,12 +320,11 @@
       margin-top: 10px;
     }
     .status-banner {
-      margin-top: 12px;
+      margin-top: 10px;
       font-weight: 600;
       color: var(--primary);
     }
 
-    /* Printable Contact Sheet Styling */
     .print-only-header, .print-only-footer {
       display: none;
     }
@@ -314,7 +339,7 @@
         color: #0f172a !important;
         font-size: 10px;
       }
-      .no-print, .nav-tabs, .top-banner, #attendanceView {
+      .no-print, .nav-tabs, .sub-tabs, .top-banner, #attendanceView, #contactsView, .add-box {
         display: none !important;
       }
       .container, .card {
@@ -359,13 +384,15 @@
         padding: 3.5px 5px !important;
         white-space: normal !important;
       }
-      input[type="text"].contact-edit {
+      input[type="text"].cell-edit, select.cell-edit {
         border: none !important;
         background: transparent !important;
         padding: 0 !important;
         min-width: 0 !important;
         font-size: 8.5px !important;
         color: #0f172a !important;
+        appearance: none;
+        -webkit-appearance: none;
       }
       .print-only-footer {
         display: block !important;
@@ -396,6 +423,7 @@
 
   <div class="nav-tabs">
     <button type="button" id="tabAttendanceBtn" class="nav-btn active" onclick="switchView('attendance')">Attendance Reports</button>
+    <button type="button" id="tabEmployeesBtn" class="nav-btn" onclick="switchView('employees')">All Employees</button>
     <button type="button" id="tabContactsBtn" class="nav-btn" onclick="switchView('contacts')">Office Staff Contacts (25)</button>
   </div>
 
@@ -460,6 +488,81 @@
     </div>
   </div>
 
+  <!-- ALL EMPLOYEES VIEW (PERMANENT & PROBATION) -->
+  <div id="employeesView" style="display:none;">
+    <div class="card">
+      <div class="print-only-header">
+        <div>
+          <h2>Shodesh Chemical Industries</h2>
+          <p id="empPrintSubtitle">174/4 Muradpur, Bandar, Narayanganj — Employee Directory</p>
+        </div>
+        <img src="logo.png" alt="Company Logo" onerror="this.style.display='none'" />
+      </div>
+
+      <div class="no-print">
+        <h2>All Employees</h2>
+        <p class="subtitle">Select <strong>Permanent Employees</strong> or <strong>Probation Employees</strong>. Promote probation staff to Permanent or add new probation staff below, then click <strong>Save Changes</strong> to persist in browser.</p>
+
+        <div class="sub-tabs" style="margin-top:12px;">
+          <button type="button" id="subPermanentBtn" class="sub-btn active" onclick="switchEmployeeSubTab('Permanent')">Permanent Employees</button>
+          <button type="button" id="subProbationBtn" class="sub-btn" onclick="switchEmployeeSubTab('Probation')">Probation Employees</button>
+        </div>
+
+        <div class="stats" id="employeeStats"></div>
+
+        <div class="controls-row" style="border-top:none; padding-top:4px; margin-top:4px; margin-bottom:14px;">
+          <button type="button" class="success" onclick="saveEmployeesData()">Save Changes</button>
+          <button type="button" class="secondary" onclick="window.print()">Print Current List</button>
+          <button type="button" class="danger" onclick="resetEmployeesDefault()">Reset Default List</button>
+        </div>
+        <div id="employeeSaveMsg" class="note status-banner" style="margin-bottom:12px;"></div>
+      </div>
+
+      <div class="table-responsive" id="employeesTableWrap"></div>
+
+      <div id="addProbationBox" class="add-box no-print" style="display:none;">
+        <h3 style="margin-top:0;">Add New Probation Employee</h3>
+        <div class="add-grid">
+          <div>
+            <label class="field-label" for="newEmpId">ID</label>
+            <input type="text" id="newEmpId" placeholder="e.g. SCI546" style="width:100%;" />
+          </div>
+          <div>
+            <label class="field-label" for="newEmpName">Name</label>
+            <input type="text" id="newEmpName" placeholder="Employee Name" style="width:100%;" />
+          </div>
+          <div>
+            <label class="field-label" for="newEmpDept">Department</label>
+            <input type="text" id="newEmpDept" placeholder="e.g. Production" style="width:100%;" />
+          </div>
+          <div>
+            <label class="field-label" for="newEmpDesig">Designation</label>
+            <input type="text" id="newEmpDesig" placeholder="e.g. Chemist" style="width:100%;" />
+          </div>
+          <div>
+            <label class="field-label" for="newEmpDoj">DOJ</label>
+            <input type="text" id="newEmpDoj" placeholder="e.g. Nov 27, 2026" style="width:100%;" />
+          </div>
+          <div>
+            <label class="field-label" for="newEmpLos">LOS</label>
+            <input type="text" id="newEmpLos" placeholder="e.g. 0y 0m 1d" style="width:100%;" />
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <button type="button" class="success" onclick="addNewProbationEmployee()">+ Add to Probation</button>
+        </div>
+      </div>
+
+      <div class="print-only-footer">
+        <div>Reported by</div>
+        <div><strong>Md. Ibrahim Hossain</strong></div>
+        <div class="print-sig-line"></div>
+        <div>Responsible Laboratory Chemist</div>
+        <div style="margin-top:4px; font-style:italic; color:#64748b;">This document has been produced electronically and is valid without a signature.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- OFFICE STAFF CONTACTS VIEW -->
   <div id="contactsView" style="display:none;">
     <div class="card">
@@ -509,6 +612,36 @@
     }
   };
 
+  const DEFAULT_EMPLOYEES = [
+    { id: "SCI 502", name: "Md. Mohin Uddin", dept: "Admin", designation: "Manager", doj: "Aug 10, 2008", los: "18y 3m 18d", status: "Permanent" },
+    { id: "SCI 503", name: "Md.Mohin Uddin (yeakub)", dept: "Production", designation: "Labor Supervisor", doj: "Jun 01, 2009", los: "17y 5m 27d", status: "Permanent" },
+    { id: "SCI 505", name: "Md. Delowar Hossin", dept: "Production", designation: "Labor Supervisor", doj: "Aug 01, 2015", los: "11y 3m 28d", status: "Permanent" },
+    { id: "SCI 507", name: "Yeakub Mia", dept: "Production", designation: "Labour Helper", doj: "Dec 01, 2018", los: "7y 11m 27d", status: "Permanent" },
+    { id: "SCI 508", name: "Mohammad Robiul Islam", dept: "Accounts", designation: "Senior Executive", doj: "Sep 19, 2019", los: "7y 2m 9d", status: "Permanent" },
+    { id: "SCI 509", name: "Md. Shamim Farhad Hero", dept: "Commercial", designation: "Deputy Manager", doj: "Sep 19, 2019", los: "7y 2m 9d", status: "Permanent" },
+    { id: "SCI 511", name: "Md. Firoj Hosan", dept: "Mechanical", designation: "Mechanical Foreman", doj: "Sep 07, 2020", los: "6y 2m 20d", status: "Permanent" },
+    { id: "SCI 515", name: "Abu Hanef", dept: "Admin", designation: "Cook", doj: "Aug 01, 2021", los: "5y 3m 27d", status: "Permanent" },
+    { id: "SCI 519", name: "Md. Azhar Ali", dept: "Electrical", designation: "Senior Electrician", doj: "Aug 01, 2022", los: "4y 3m 27d", status: "Permanent" },
+    { id: "SCI 523", name: "Md Rafiqual Islam", dept: "Store", designation: "Store Keeper", doj: "Oct 01, 2022", los: "4y 1m 27d", status: "Permanent" },
+    { id: "SCI 527", name: "Md. Saiful Islam Khan", dept: "Commercial", designation: "Executive", doj: "Nov 24, 2024", los: "2y 0m 3d", status: "Permanent" },
+    { id: "SCI 529", name: "Md. Tamim ahmed", dept: "Admin", designation: "Office Peon", doj: "Nov 28, 2024", los: "1y 11m 29d", status: "Permanent" },
+    { id: "SCI 531", name: "Md. Kawsar Mia", dept: "Mechanical", designation: "Welder", doj: "Jun 25, 2025", los: "1y 5m 3d", status: "Permanent" },
+    { id: "SCI 532", name: "Mehadi Hasan", dept: "Accounts", designation: "Outdoor Staff", doj: "Jun 28, 2025", los: "1y 4m 31d", status: "Permanent" },
+    { id: "ST930", name: "Md. Kaowsar Khan", dept: "Admin", designation: "Security Superviser", doj: "Dec 01, 2025", los: "0y 11m 27d", status: "Permanent" },
+
+    { id: "SCI518", name: "Md Mosaraf Hossain", dept: "Electrical", designation: "Electrician", doj: "May 14, 2026", los: "0y 6m 15d", status: "Probation" },
+    { id: "SCI522", name: "Md. Al Amin Mondol", dept: "Commercial", designation: "Executive", doj: "May 23, 2026", los: "0y 6m 6d", status: "Probation" },
+    { id: "SCI535", name: "Md Ibrahim Hossain", dept: "Admin", designation: "Security Guard", doj: "Aug 11, 2026", los: "0y 3m 17d", status: "Probation" },
+    { id: "SCI538", name: "Mahamodur Rahman", dept: "Electrical", designation: "Electrician", doj: "Oct 15, 2025", los: "1y 1m 13d", status: "Probation" },
+    { id: "SCI541", name: "Md. Ibrahim Hossain", dept: "Production", designation: "Assistant Chemist", doj: "Sep 05, 2026", los: "0y 2m 23d", status: "Probation" },
+    { id: "SCI542", name: "Mohammad Rahmatullah", dept: "Store", designation: "Executive", doj: "Sep 19, 2026", los: "0y 2m 9d", status: "Probation" },
+    { id: "SCI543", name: "Md. Zakir Hosen", dept: "Mechanical", designation: "Mechanical Helper", doj: "Oct 03, 2026", los: "0y 1m 25d", status: "Probation" },
+    { id: "SCI544", name: "Md. Shovo", dept: "Admin", designation: "Security Guard", doj: "Oct 10, 2026", los: "0y 1m 18d", status: "Probation" },
+    { id: "SCI545", name: "Md Nazirul Islam", dept: "Mechanical", designation: "Welder", doj: "Nov 01, 2026", los: "0y 0m 27d", status: "Probation" },
+    { id: "SCI670", name: "Indrish Mia", dept: "Operation", designation: "Daily Labour", doj: "Aug 30, 2026", los: "0y 2m 29d", status: "Probation" },
+    { id: "SCI673", name: "Habibur Rahman", dept: "Operation", designation: "Daily Labour", doj: "Aug 30, 2026", los: "0y 2m 29d", status: "Probation" }
+  ];
+
   const DEFAULT_25_CONTACTS = [
     { name: "Md. Mohin Uddin", dept: "Admin", designation: "Manager", phone: "01730-735583", email: "factory2.mohin@shodesh-chemicals.com" },
     { name: "Md. Shamim Farhad Hero", dept: "Commercial", designation: "Deputy Manager", phone: "01841-158598", email: "factory4.hero@shodesh-chemicals.com" },
@@ -537,20 +670,193 @@
     { name: "Md Zahidul Islam", dept: "Sales & Marketing", designation: "Senior Executive", phone: "8801841094652", email: "marketing2@shodesh-chemicals.com" }
   ];
 
+  const EMPLOYEE_STORAGE_KEY = "shodesh_employees_list_v1";
   const CONTACT_STORAGE_KEY = "shodesh_25_staff_contacts_v1";
+
+  let employeesList = [];
+  let activeEmployeeSubTab = "Permanent";
   let staffContacts = [];
   let currentStaff = [];
   let currentLabour = [];
 
   function switchView(viewName) {
-    const isContacts = viewName === "contacts";
-    document.getElementById("attendanceView").style.display = isContacts ? "none" : "block";
-    document.getElementById("contactsView").style.display = isContacts ? "block" : "none";
-    document.getElementById("tabAttendanceBtn").classList.toggle("active", !isContacts);
-    document.getElementById("tabContactsBtn").classList.toggle("active", isContacts);
-    if (isContacts) {
+    document.getElementById("attendanceView").style.display = viewName === "attendance" ? "block" : "none";
+    document.getElementById("employeesView").style.display = viewName === "employees" ? "block" : "none";
+    document.getElementById("contactsView").style.display = viewName === "contacts" ? "block" : "none";
+
+    document.getElementById("tabAttendanceBtn").classList.toggle("active", viewName === "attendance");
+    document.getElementById("tabEmployeesBtn").classList.toggle("active", viewName === "employees");
+    document.getElementById("tabContactsBtn").classList.toggle("active", viewName === "contacts");
+
+    if (viewName === "employees") {
+      renderEmployeesSection();
+    } else if (viewName === "contacts") {
       renderContactsTable();
     }
+  }
+
+  function loadEmployees() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(EMPLOYEE_STORAGE_KEY) || "null");
+      if (Array.isArray(saved) && saved.length > 0) {
+        employeesList = saved;
+        return;
+      }
+    } catch (e) {}
+    employeesList = DEFAULT_EMPLOYEES.map(item => ({ ...item }));
+  }
+
+  function switchEmployeeSubTab(subTab) {
+    activeEmployeeSubTab = subTab;
+    document.getElementById("subPermanentBtn").classList.toggle("active", subTab === "Permanent");
+    document.getElementById("subProbationBtn").classList.toggle("active", subTab === "Probation");
+    document.getElementById("addProbationBox").style.display = subTab === "Probation" ? "block" : "none";
+    document.getElementById("empPrintSubtitle").textContent =
+      `174/4 Muradpur, Bandar, Narayanganj — ${subTab} Employees List`;
+    renderEmployeesSection();
+  }
+
+  function renderEmployeesSection() {
+    const permCount = employeesList.filter(e => e.status === "Permanent").length;
+    const probCount = employeesList.filter(e => e.status === "Probation").length;
+
+    document.getElementById("employeeStats").innerHTML = `
+      <div class="stat-pill">Permanent: ${permCount}</div>
+      <div class="stat-pill">Probation: ${probCount}</div>
+      <div class="stat-pill">Viewing: ${activeEmployeeSubTab} Employees</div>
+    `;
+
+    document.getElementById("addProbationBox").style.display = activeEmployeeSubTab === "Probation" ? "block" : "none";
+
+    const filtered = employeesList
+      .map((emp, originalIndex) => ({ emp, originalIndex }))
+      .filter(item => item.emp.status === activeEmployeeSubTab);
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>SL</th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>DOJ</th>
+            <th>LOS</th>
+            <th>Status</th>
+            <th class="no-print">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    if (!filtered.length) {
+      html += `<tr><td colspan="9" style="text-align:center; color:#64748b;">No employees in ${activeEmployeeSubTab}.</td></tr>`;
+    } else {
+      filtered.forEach((item, idx) => {
+        const { emp, originalIndex } = item;
+        const actionBtn = emp.status === "Probation"
+          ? `<button type="button" class="success mini-btn" onclick="promoteToPermanent(${originalIndex})">Move to Permanent</button> `
+          : "";
+        html += `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><input type="text" class="cell-edit" value="${escapeAttr(emp.id)}" oninput="employeesList[${originalIndex}].id = this.value" /></td>
+            <td><input type="text" class="cell-edit" value="${escapeAttr(emp.name)}" oninput="employeesList[${originalIndex}].name = this.value" /></td>
+            <td><input type="text" class="cell-edit" value="${escapeAttr(emp.dept)}" oninput="employeesList[${originalIndex}].dept = this.value" /></td>
+            <td><input type="text" class="cell-edit" value="${escapeAttr(emp.designation)}" oninput="employeesList[${originalIndex}].designation = this.value" /></td>
+            <td><input type="text" class="cell-edit" value="${escapeAttr(emp.doj)}" oninput="employeesList[${originalIndex}].doj = this.value" /></td>
+            <td><input type="text" class="cell-edit" value="${escapeAttr(emp.los)}" oninput="employeesList[${originalIndex}].los = this.value" /></td>
+            <td>
+              <select class="cell-edit" onchange="changeEmployeeStatus(${originalIndex}, this.value)">
+                <option value="Permanent" ${emp.status === "Permanent" ? "selected" : ""}>Permanent</option>
+                <option value="Probation" ${emp.status === "Probation" ? "selected" : ""}>Probation</option>
+              </select>
+            </td>
+            <td class="no-print">
+              ${actionBtn}
+              <button type="button" class="danger mini-btn" onclick="deleteEmployee(${originalIndex})">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    html += `</tbody></table>`;
+    document.getElementById("employeesTableWrap").innerHTML = html;
+  }
+
+  function promoteToPermanent(index) {
+    employeesList[index].status = "Permanent";
+    localStorage.setItem(EMPLOYEE_STORAGE_KEY, JSON.stringify(employeesList));
+    renderEmployeesSection();
+    document.getElementById("employeeSaveMsg").textContent =
+      `${employeesList[index].name} moved to Permanent Employees and saved.`;
+  }
+
+  function changeEmployeeStatus(index, newStatus) {
+    employeesList[index].status = newStatus;
+    localStorage.setItem(EMPLOYEE_STORAGE_KEY, JSON.stringify(employeesList));
+    renderEmployeesSection();
+    document.getElementById("employeeSaveMsg").textContent =
+      `${employeesList[index].name} status updated to ${newStatus} and saved.`;
+  }
+
+  function deleteEmployee(index) {
+    const removedName = employeesList[index].name;
+    employeesList.splice(index, 1);
+    localStorage.setItem(EMPLOYEE_STORAGE_KEY, JSON.stringify(employeesList));
+    renderEmployeesSection();
+    document.getElementById("employeeSaveMsg").textContent = `${removedName} deleted and changes saved.`;
+  }
+
+  function addNewProbationEmployee() {
+    const idVal = document.getElementById("newEmpId").value.trim();
+    const nameVal = document.getElementById("newEmpName").value.trim();
+    const deptVal = document.getElementById("newEmpDept").value.trim();
+    const desigVal = document.getElementById("newEmpDesig").value.trim();
+    const dojVal = document.getElementById("newEmpDoj").value.trim();
+    const losVal = document.getElementById("newEmpLos").value.trim();
+
+    if (!nameVal) {
+      alert("Please enter the employee's Name.");
+      return;
+    }
+
+    employeesList.push({
+      id: idVal || "N/A",
+      name: nameVal,
+      dept: deptVal || "N/A",
+      designation: desigVal || "N/A",
+      doj: dojVal || "N/A",
+      los: losVal || "0y 0m 0d",
+      status: "Probation"
+    });
+
+    localStorage.setItem(EMPLOYEE_STORAGE_KEY, JSON.stringify(employeesList));
+
+    document.getElementById("newEmpId").value = "";
+    document.getElementById("newEmpName").value = "";
+    document.getElementById("newEmpDept").value = "";
+    document.getElementById("newEmpDesig").value = "";
+    document.getElementById("newEmpDoj").value = "";
+    document.getElementById("newEmpLos").value = "";
+
+    renderEmployeesSection();
+    document.getElementById("employeeSaveMsg").textContent = `${nameVal} added to Probation Employees and saved.`;
+  }
+
+  function saveEmployeesData() {
+    localStorage.setItem(EMPLOYEE_STORAGE_KEY, JSON.stringify(employeesList));
+    renderEmployeesSection();
+    document.getElementById("employeeSaveMsg").textContent = "All employee changes saved in this browser.";
+  }
+
+  function resetEmployeesDefault() {
+    employeesList = DEFAULT_EMPLOYEES.map(item => ({ ...item }));
+    localStorage.removeItem(EMPLOYEE_STORAGE_KEY);
+    renderEmployeesSection();
+    document.getElementById("employeeSaveMsg").textContent = "Reset to default Permanent & Probation employee lists.";
   }
 
   function loadContacts() {
@@ -584,11 +890,11 @@
       html += `
         <tr>
           <td>${idx + 1}</td>
-          <td><input type="text" class="contact-edit" value="${escapeAttr(c.name)}" oninput="staffContacts[${idx}].name = this.value" /></td>
-          <td><input type="text" class="contact-edit" value="${escapeAttr(c.dept)}" oninput="staffContacts[${idx}].dept = this.value" /></td>
-          <td><input type="text" class="contact-edit" value="${escapeAttr(c.designation)}" oninput="staffContacts[${idx}].designation = this.value" /></td>
-          <td><input type="text" class="contact-edit" value="${escapeAttr(c.phone)}" oninput="staffContacts[${idx}].phone = this.value" /></td>
-          <td><input type="text" class="contact-edit" value="${escapeAttr(c.email)}" oninput="staffContacts[${idx}].email = this.value" /></td>
+          <td><input type="text" class="cell-edit" value="${escapeAttr(c.name)}" oninput="staffContacts[${idx}].name = this.value" /></td>
+          <td><input type="text" class="cell-edit" value="${escapeAttr(c.dept)}" oninput="staffContacts[${idx}].dept = this.value" /></td>
+          <td><input type="text" class="cell-edit" value="${escapeAttr(c.designation)}" oninput="staffContacts[${idx}].designation = this.value" /></td>
+          <td><input type="text" class="cell-edit" value="${escapeAttr(c.phone)}" oninput="staffContacts[${idx}].phone = this.value" /></td>
+          <td><input type="text" class="cell-edit" value="${escapeAttr(c.email)}" oninput="staffContacts[${idx}].email = this.value" /></td>
         </tr>
       `;
     });
@@ -1149,7 +1455,9 @@
   }
 
   window.onload = () => {
+    loadEmployees();
     loadContacts();
+    renderEmployeesSection();
     renderContactsTable();
     const allSaved = JSON.parse(localStorage.getItem("attendance_records_v1") || "{}");
     populateMonthDropdown(Object.keys(allSaved));
