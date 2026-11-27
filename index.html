@@ -12,7 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
-      --bg: #f1f5f9;
+      --bg: #eef2f7;
       --surface: #ffffff;
       --surface-soft: #f8fafc;
       --text: #0f172a;
@@ -34,7 +34,7 @@
     }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      background: var(--bg);
+      background: linear-gradient(180deg, #dbeafe 0%, var(--bg) 220px);
       margin: 0;
       padding: 24px 16px 48px;
       color: var(--text);
@@ -47,10 +47,11 @@
     .top-banner {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-top: 3px solid var(--primary);
-      border-radius: 10px;
-      padding: 18px 22px;
+      border-top: 4px solid var(--primary);
+      border-radius: 12px;
+      padding: 20px 24px;
       margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -63,12 +64,12 @@
       gap: 14px;
     }
     .brand-logo-preview {
-      width: 56px;
-      height: 56px;
+      width: 58px;
+      height: 58px;
       object-fit: contain;
       border-radius: 8px;
       border: 1px solid var(--border);
-      background: var(--surface);
+      background: var(--surface-soft);
       padding: 4px;
     }
     .nav-tabs, .sub-tabs {
@@ -80,36 +81,38 @@
     .nav-btn, .sub-btn {
       background: var(--surface);
       color: var(--primary);
-      border: 1px solid var(--border);
+      border: 1.5px solid var(--primary);
       padding: 9px 16px;
       border-radius: 8px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.15s;
     }
     .nav-btn.active, .sub-btn.active {
       background: var(--primary);
-      border-color: var(--primary);
       color: #ffffff;
     }
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 20px 24px;
-      margin-bottom: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
     }
     h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 21px;
       font-weight: 700;
+      letter-spacing: -0.02em;
       color: var(--primary);
     }
     h2 {
-      margin: 0 0 8px;
-      font-size: 16.5px;
+      margin: 0 0 10px;
+      font-size: 17px;
       font-weight: 700;
+      letter-spacing: -0.01em;
       color: var(--text);
     }
     h3 {
@@ -119,7 +122,7 @@
       color: var(--primary);
     }
     .subtitle {
-      margin: 3px 0 0;
+      margin: 4px 0 0;
       font-size: 13px;
       color: var(--muted);
     }
@@ -137,15 +140,20 @@
     .add-box {
       background: var(--surface-soft);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 16px;
       margin-top: 18px;
     }
     .upload-box {
-      border: 1px dashed var(--border);
-      border-radius: 8px;
+      border: 1.5px dashed #94a3b8;
+      border-radius: 10px;
       padding: 16px;
       background: var(--surface-soft);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-box:hover {
+      border-color: var(--primary);
+      background: #eff6ff;
     }
     label.field-label {
       display: block;
@@ -156,7 +164,7 @@
     }
     input[type="date"], input[type="file"], select, input[type="text"] {
       padding: 8px 10px;
-      border: 1px solid var(--border);
+      border: 1px solid #94a3b8;
       border-radius: 7px;
       font-size: 13px;
       font-family: inherit;
@@ -170,26 +178,27 @@
     input[type="text"].remark-input {
       width: 100%;
       min-width: 150px;
-      border-color: var(--border);
-      background: #fff;
+      border-color: #d97706;
+      background: #fffbeb;
     }
     input[type="text"].cell-edit, select.cell-edit {
       width: 100%;
       min-width: 95px;
       padding: 5px 7px;
       font-size: 12px;
-      border: 1px solid var(--border);
+      border: 1px solid #cbd5e1;
       border-radius: 6px;
-      background: #fff;
+      background: #f8fafc;
     }
     input[type="text"].cell-edit:focus, select.cell-edit:focus {
       outline: none;
       border-color: var(--primary);
+      background: #eff6ff;
     }
     input[type="text"].los-readonly {
-      background: var(--surface-soft);
+      background: #f1f5f9;
       font-weight: 600;
-      color: var(--text);
+      color: #1e3a8a;
     }
     .controls-row {
       display: flex;
@@ -210,9 +219,13 @@
       font-size: 13px;
       font-weight: 600;
       font-family: inherit;
+      transition: background 0.15s, transform 0.05s;
     }
     button:hover {
       background: var(--primary-hover);
+    }
+    button:active {
+      transform: translateY(1px);
     }
     button.secondary {
       background: var(--accent);
@@ -250,11 +263,11 @@
       margin: 12px 0 14px;
     }
     .stat-pill {
-      background: var(--surface-soft);
-      border: 1px solid var(--border);
-      color: var(--text);
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
       padding: 5px 12px;
-      border-radius: 6px;
+      border-radius: 999px;
       font-size: 12px;
       font-weight: 600;
     }
@@ -272,33 +285,40 @@
     }
     th, td {
       border-bottom: 1px solid #e2e8f0;
-      border-right: 1px solid #e2e8f0;
+      border-right: 1px solid #f1f5f9;
       padding: 7px 9px;
       text-align: left;
       white-space: nowrap;
-      background: #ffffff;
     }
     td:last-child, th:last-child {
       border-right: none;
     }
     th {
-      background: var(--surface-soft);
-      color: var(--text);
-      font-weight: 700;
+      background: #1e3a8a;
+      color: #ffffff;
+      font-weight: 600;
       font-size: 12px;
-      border-bottom: 1.5px solid var(--border);
+      letter-spacing: 0.01em;
+    }
+    tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    tbody tr:hover {
+      background: #eff6ff;
     }
     .badge {
       display: inline-block;
-      padding: 2px 7px;
-      border-radius: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
       font-weight: 600;
       text-transform: uppercase;
       font-size: 10.5px;
-      border: 1px solid var(--border);
-      background: var(--surface-soft);
-      color: var(--text);
+      letter-spacing: 0.02em;
     }
+    .present { background: #dcfce7; color: #166534; }
+    .late { background: #fef3c7; color: #92400e; }
+    .absent { background: #fee2e2; color: #991b1b; }
+    .casual { background: #dbeafe; color: #1e40af; }
     .note {
       font-size: 12.5px;
       color: var(--muted);
@@ -338,14 +358,14 @@
         display: flex !important;
         align-items: center;
         justify-content: space-between;
-        border-bottom: 1px solid #94a3b8;
+        border-bottom: 1.5px solid #1e3a8a;
         padding-bottom: 6px;
         margin-bottom: 10px;
       }
       .print-only-header h2 {
         margin: 0;
         font-size: 14px;
-        color: #0f172a;
+        color: #1e3a8a;
       }
       .print-only-header p {
         margin: 2px 0 0;
@@ -388,7 +408,7 @@
       .print-sig-line {
         display: inline-block;
         width: 125px;
-        border-bottom: 1px solid #475569;
+        border-bottom: 1.2px solid #1e3a8a;
         margin: 2px 0 3px;
       }
     }
@@ -1249,6 +1269,10 @@
 
   function statusBadge(st) {
     const s = norm(st);
+    if (s === "present") return `<span class="badge present">present</span>`;
+    if (s === "late") return `<span class="badge late">late</span>`;
+    if (s === "absent") return `<span class="badge absent">absent</span>`;
+    if (s.includes("casual") || s.includes("leave")) return `<span class="badge casual">${st}</span>`;
     return `<span class="badge">${st}</span>`;
   }
 
@@ -1540,13 +1564,13 @@
   }
 
   function drawInlineSummaryLineInPDF(doc, summaryText, pageWidth, leftMargin, rightMargin, yTop) {
-    doc.setDrawColor(203, 213, 225);
+    doc.setDrawColor(160, 160, 160);
     doc.setLineWidth(0.3);
     doc.line(leftMargin, yTop - 2.4, pageWidth - rightMargin, yTop - 2.4);
 
-    doc.setFont("helvetica", "bold");
+    doc.setFont("arial", "bold");
     doc.setFontSize(7.8);
-    doc.setTextColor(15, 23, 42);
+    doc.setTextColor(0, 0, 0);
     doc.text(summaryText, leftMargin, yTop + 1.2);
   }
 
@@ -1566,18 +1590,18 @@
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
-    doc.setTextColor(15, 23, 42);
+    doc.setTextColor(30, 58, 138);
     doc.text("Shodesh Chemical Industries", leftMargin, 11.0);
 
-    doc.setFont("helvetica", "normal");
+    doc.setFont("arial", "normal");
     doc.setFontSize(8.4);
-    doc.setTextColor(71, 85, 105);
+    doc.setTextColor(45, 45, 45);
     doc.text("174/4 Muradpur, Bandar, Narayanganj", leftMargin, 15.1);
     doc.text(`Date of attendance (DD.MM.YYYY) ${formatDateDDMMYYYY(dateStr)}`, leftMargin, 19.0);
 
-    doc.setFont("helvetica", "bold");
+    doc.setFont("arial", "bold");
     doc.setFontSize(9.6);
-    doc.setTextColor(30, 58, 138);
+    doc.setTextColor(0, 0, 0);
     doc.text(subTitle, leftMargin, subTitleY);
 
     if (logoInfo && logoInfo.dataUrl) {
@@ -1606,18 +1630,18 @@
       rowPageBreak: "avoid",
       pageBreak: "avoid",
       styles: {
-        font: "helvetica",
+        font: "arial",
         fontSize: fontSize,
         cellPadding: cellPad,
         fillColor: [255, 255, 255],
-        textColor: [15, 23, 42],
-        lineColor: [203, 213, 225],
+        textColor: [0, 0, 0],
+        lineColor: [160, 160, 160],
         lineWidth: 0.15,
         overflow: "ellipsize"
       },
       headStyles: {
-        fillColor: [241, 245, 249],
-        textColor: [15, 23, 42],
+        fillColor: [235, 235, 235],
+        textColor: [0, 0, 0],
         fontStyle: "bold",
         cellPadding: cellPad + 0.15
       },
@@ -1637,35 +1661,35 @@
       drawInlineSummaryLineInPDF(doc, summaryText, pageWidth, leftMargin, rightMargin, summaryTopY);
     }
 
-    doc.setFont("helvetica", "normal");
+    doc.setFont("arial", "normal");
     doc.setFontSize(8.0);
-    doc.setTextColor(71, 85, 105);
+    doc.setTextColor(45, 45, 45);
     doc.text("Reported by", leftMargin, footerBottomAnchor - 13.5);
 
-    doc.setFont("helvetica", "bold");
+    doc.setFont("arial", "bold");
     doc.setFontSize(8.6);
-    doc.setTextColor(15, 23, 42);
+    doc.setTextColor(0, 0, 0);
     doc.text(nameText, leftMargin, footerBottomAnchor - 9.4);
 
     const nameWidth = doc.getTextWidth(nameText);
     const dashWidth = nameWidth + 5;
-    doc.setDrawColor(71, 85, 105);
+    doc.setDrawColor(60, 60, 60);
     doc.setLineWidth(0.4);
     doc.line(leftMargin, footerBottomAnchor - 7.6, leftMargin + dashWidth, footerBottomAnchor - 7.6);
 
-    doc.setFont("helvetica", "normal");
+    doc.setFont("arial", "normal");
     doc.setFontSize(8.0);
-    doc.setTextColor(30, 58, 138);
+    doc.setTextColor(0, 0, 0);
     doc.text("Responsible Laboratory Chemist", leftMargin, footerBottomAnchor - 3.8);
 
-    doc.setFont("helvetica", "italic");
+    doc.setFont("arial", "italic");
     doc.setFontSize(7.2);
-    doc.setTextColor(71, 85, 105);
+    doc.setTextColor(65, 65, 65);
     doc.text("This document has been produced electronically and is valid without a signature.", leftMargin, footerBottomAnchor + 0.4);
 
-    doc.setFont("helvetica", "normal");
+    doc.setFont("arial", "normal");
     doc.setFontSize(6.4);
-    doc.setTextColor(100, 116, 139);
+    doc.setTextColor(80, 80, 80);
     doc.text(`Printed: ${printedAtText}`, leftMargin, pageHeight - 4.0);
     doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - rightMargin, pageHeight - 4.0, { align: "right" });
   }
