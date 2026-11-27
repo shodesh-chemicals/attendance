@@ -679,23 +679,65 @@
       <div class="print-only-header">
         <div>
           <h2 class="company-brand-title">Shodesh Chemical Industries</h2>
-          <p>174/4 Muradpur, Bandar, Narayanganj — Office Staff Contact Directory (25 Staff)</p>
+          <p id="contactPrintSubtitle">174/4 Muradpur, Bandar, Narayanganj — Office Staff Contact Directory</p>
         </div>
         <img src="logo.png" alt="Company Logo" onerror="this.style.display='none'" />
       </div>
 
       <div class="no-print">
-        <h2>Office Staff Contact Directory (25 Staff)</h2>
-        <p class="subtitle">Edit missing phone numbers or email addresses directly in the table, click <strong>Save Contacts</strong>, or print the directory.</p>
-        <div class="controls-row" style="border-top:none; padding-top:6px; margin-top:8px; margin-bottom:14px;">
-          <button type="button" onclick="saveContactsData()">Save Contacts</button>
-          <button type="button" class="secondary" onclick="printContactsSheet()">Print Contact List</button>
-          <button type="button" class="danger" onclick="resetContactsDefault()">Reset Default 25</button>
+        <h2 id="contactHeadingTitle">Office Staff Contact Directory (25 Staff)</h2>
+        <p class="subtitle">Switch between <strong>Contact List</strong> and <strong>Add Contact</strong> to manually add a new employee contact or update existing ones.</p>
+
+        <div class="sub-tabs" style="margin-top:12px;">
+          <button type="button" id="subContactListBtn" class="sub-btn active" onclick="switchContactSubTab('list')">Contact List</button>
+          <button type="button" id="subAddContactBtn" class="sub-btn" onclick="switchContactSubTab('add')">Add Contact</button>
         </div>
+
+        <div id="contactListControls">
+          <div class="controls-row" style="border-top:none; padding-top:4px; margin-top:4px; margin-bottom:14px;">
+            <button type="button" onclick="saveContactsData()">Save Contacts</button>
+            <button type="button" class="secondary" onclick="printContactsSheet()">Print Contact List</button>
+            <button type="button" class="danger" onclick="resetContactsDefault()">Reset Default 25</button>
+          </div>
+        </div>
+
         <div id="contactSaveMsg" class="note status-banner" style="margin-bottom:12px;"></div>
       </div>
 
-      <div class="table-responsive" id="contactsTableWrap"></div>
+      <div id="contactListPanel">
+        <div class="table-responsive" id="contactsTableWrap"></div>
+      </div>
+
+      <div id="addContactPanel" class="add-box no-print" style="display:none; margin-top:8px;">
+        <h3 style="margin-top:0;">Add New Office Staff Contact</h3>
+        <p class="subtitle" style="margin-bottom:12px;">Enter the details of the newly joined staff member and click <strong>Add Contact</strong>.</p>
+        <div class="add-grid">
+          <div>
+            <label class="field-label" for="newContactName">Employee Name *</label>
+            <input type="text" id="newContactName" placeholder="Full Name" style="width:100%;" />
+          </div>
+          <div>
+            <label class="field-label" for="newContactDept">Department</label>
+            <input type="text" id="newContactDept" placeholder="e.g. Production" style="width:100%;" />
+          </div>
+          <div>
+            <label class="field-label" for="newContactDesig">Designation</label>
+            <input type="text" id="newContactDesig" placeholder="e.g. Executive" style="width:100%;" />
+          </div>
+          <div>
+            <label class="field-label" for="newContactPhone">Phone</label>
+            <input type="text" id="newContactPhone" placeholder="e.g. 018XXXXXXXX" style="width:100%;" />
+          </div>
+          <div>
+            <label class="field-label" for="newContactEmail">Email</label>
+            <input type="text" id="newContactEmail" placeholder="e.g. name@shodesh-chemicals.com" style="width:100%;" />
+          </div>
+        </div>
+        <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:10px;">
+          <button type="button" id="addContactBtn" class="success" onclick="addNewContact()">Add Contact</button>
+          <button type="button" class="secondary" onclick="switchContactSubTab('list')">View Contact List</button>
+        </div>
+      </div>
 
       <div class="print-only-footer">
         <div>Reported by</div>
@@ -790,6 +832,7 @@
   let employeesList = [];
   let activeEmployeeSubTab = "Permanent";
   let activeAttendanceSubTab = "dailyMonthly";
+  let activeContactSubTab = "list";
   let staffContacts = [];
   let currentStaff = [];
   let currentLabour = [];
@@ -909,6 +952,7 @@
     } else if (viewName === "employees") {
       renderEmployeesSection();
     } else if (viewName === "contacts") {
+      updateContactLabels();
       renderContactsTable();
     }
   }
@@ -925,6 +969,18 @@
       syncIndividualDropdowns();
       renderIndividualAttendance();
     }
+  }
+
+  function switchContactSubTab(subName) {
+    activeContactSubTab = subName === "add" ? "add" : "list";
+    const isAdd = activeContactSubTab === "add";
+
+    document.getElementById("subContactListBtn").classList.toggle("active", !isAdd);
+    document.getElementById("subAddContactBtn").classList.toggle("active", isAdd);
+
+    document.getElementById("contactListControls").style.display = isAdd ? "none" : "block";
+    document.getElementById("contactListPanel").style.display = isAdd ? "none" : "block";
+    document.getElementById("addContactPanel").style.display = isAdd ? "block" : "none";
   }
 
   function syncIndividualDropdowns() {
@@ -1255,15 +1311,26 @@
   function loadContacts() {
     try {
       const saved = JSON.parse(localStorage.getItem(CONTACT_STORAGE_KEY) || "null");
-      if (Array.isArray(saved) && saved.length === 25) {
+      if (Array.isArray(saved) && saved.length > 0) {
         staffContacts = saved;
+        updateContactLabels();
         return;
       }
     } catch (e) {}
     staffContacts = DEFAULT_25_CONTACTS.map(item => ({ ...item }));
+    updateContactLabels();
+  }
+
+  function updateContactLabels() {
+    const count = staffContacts.length;
+    document.getElementById("tabContactsBtn").textContent = `Office Staff Contacts (${count})`;
+    document.getElementById("contactHeadingTitle").textContent = `Office Staff Contact Directory (${count} Staff)`;
+    document.getElementById("contactPrintSubtitle").textContent =
+      `174/4 Muradpur, Bandar, Narayanganj — Office Staff Contact Directory (${count} Staff)`;
   }
 
   function renderContactsTable() {
+    updateContactLabels();
     let html = `
       <table>
         <thead>
@@ -1296,6 +1363,39 @@
     document.getElementById("contactsTableWrap").innerHTML = html;
   }
 
+  function addNewContact() {
+    const nameVal = document.getElementById("newContactName").value.trim();
+    const deptVal = document.getElementById("newContactDept").value.trim();
+    const desigVal = document.getElementById("newContactDesig").value.trim();
+    const phoneVal = document.getElementById("newContactPhone").value.trim();
+    const emailVal = document.getElementById("newContactEmail").value.trim();
+
+    if (!nameVal) {
+      alert("Please enter the employee's Name.");
+      return;
+    }
+
+    staffContacts.push({
+      name: nameVal,
+      dept: deptVal || "N/A",
+      designation: desigVal || "N/A",
+      phone: phoneVal || "N/A",
+      email: emailVal || "N/A"
+    });
+
+    localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(staffContacts));
+
+    document.getElementById("newContactName").value = "";
+    document.getElementById("newContactDept").value = "";
+    document.getElementById("newContactDesig").value = "";
+    document.getElementById("newContactPhone").value = "";
+    document.getElementById("newContactEmail").value = "";
+
+    renderContactsTable();
+    switchContactSubTab("list");
+    document.getElementById("contactSaveMsg").textContent = `${nameVal} added to Office Staff Contacts and saved.`;
+  }
+
   function escapeAttr(val) {
     return String(val ?? "")
       .replace(/&/g, "&amp;")
@@ -1306,7 +1406,8 @@
 
   function saveContactsData() {
     localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(staffContacts));
-    document.getElementById("contactSaveMsg").textContent = "All 25 office staff contacts saved in this browser.";
+    updateContactLabels();
+    document.getElementById("contactSaveMsg").textContent = `All ${staffContacts.length} office staff contacts saved in this browser.`;
   }
 
   function resetContactsDefault() {
