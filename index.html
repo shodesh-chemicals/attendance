@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily & Monthly Attendance Report System</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+      color: #1f2937;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .upload-box {
+      border: 2px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 14px;
+      background: #f8fafc;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    input[type="date"], input[type="file"], select, input[type="text"] {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input[type="text"].remark-input {
+      width: 95%;
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+    button {
+      background: #0f766e;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      margin-right: 8px;
+      margin-top: 8px;
+    }
+    button:hover {
+      background: #115e59;
+    }
+    button.secondary {
+      background: #2563eb;
+    }
+    button.secondary:hover {
+      background: #1d4ed8;
+    }
+    button.danger {
+      background: #dc2626;
+    }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 12px 0;
+    }
+    .stat-pill {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+    }
+    .badge {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    .present { background: #dcfce7; color: #166534; }
+    .late { background: #fef3c7; color: #92400e; }
+    .absent { background: #fee2e2; color: #991b1b; }
+    .casual { background: #e0e7ff; color: #3730a3; }
+    .note {
+      font-size: 13px;
+      color: #475569;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Daily & Monthly Attendance Report Generator</h1>
+    <p class="note">Step 1 Preview: Upload Kaspur CSV/XLSX + optional Dhaka CSV/XLSX (for cross-unit staff like SCI530).</p>
+
+    <div class="grid-2">
+      <div class="upload-box">
+        <label>1. Kaspur / Plant Attendance File (Required)</label>
+        <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" />
+      </div>
+      <div class="upload-box">
+        <label>2. Dhaka File (Optional — for SCI530 Md Zahidul Islam)</label>
+        <input type="file" id="dhakaFile" accept=".csv,.xlsx,.xls" />
+      </div>
+    </div>
+
+    <div style="margin-top: 14px;">
+      <label for="reportDate" style="display:inline-block; margin-right:8px;">Report Date:</label>
+      <input type="date" id="reportDate" value="2026-11-26" />
+      <button onclick="processFiles()">Load & Filter Reports</button>
+    </div>
+  </div>
+
+  <div class="card" id="staffSection" style="display:none;">
+    <h2>Staff Attendance Report</h2>
+    <div class="stats" id="staffStats"></div>
+    <div id="staffTableWrap"></div>
+  </div>
+
+  <div class="card" id="labourSection" style="display:none;">
+    <h2>Daily Labour Attendance Report (Present & Late Only — No Remarks)</h2>
+    <div class="stats" id="labourStats"></div>
+    <div id="labourTableWrap"></div>
+  </div>
+
+  <div class="card" id="actionSection" style="display:none;">
+    <h2>Save & Download Excel Files</h2>
+    <button class="secondary" onclick="saveAndDownload()">Save Daily Data & Download Both Excel Files</button>
+    <span id="saveMsg" class="note"></span>
+  </div>
+
+  <div class="card">
+    <h2>Monthly Report (From Saved Daily Data in This Browser)</h2>
+    <label for="monthSelect" style="display:inline-block; margin-right:8px;">Select Month:</label>
+    <select id="monthSelect" onchange="renderMonthly()">
+      <option value="2026-11">2026-11</option>
+    </select>
+    <button onclick="renderMonthly()">View Monthly Summary</button>
+    <button class="danger" onclick="clearSavedData()">Clear Saved Browser Data</button>
+    <div id="monthlyWrap" style="margin-top:12px;"></div>
+  </div>
+</div>
+
+<script>
+  // Cross-unit staff IDs to pull from Dhaka file if not in Plant file
+  const CROSS_UNIT_IDS = ["sci530"];
+  const CROSS_UNIT_DEFAULTS = {
+    "sci530": {
+      ID: "SCI530",
+      Name: "Md Zahidul Islam",
+      Designation: "Senior Executive",
+      Department: "Sales & Marketing",
+      Shift_Name: "9:30 AM to 5:30 PM (Saturday to Thursday)",
+      Company: "Shodesh Chemical Industries - Dhaka",
+      Location: "Kachpur"
+    }
+  };
+
+  let currentStaff = [];
+  let currentLabour = [];
+
+  function norm(val) {
+    return (val === null || val === undefined ? "" : String(val)).trim().toLowerCase();
+  }
+
+  function readSpreadsheet(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type: "array" });
+        const firstSheet = wb.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[firstSheet], { defval: "" });
+        resolve(rows);
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function normalizeRow(row) {
+    return {
+      ID: String(row["ID"] ?? "").trim(),
+      Name: String(row["Name"] ?? "").trim(),
+      Designation: String(row["Designation"] ?? "").trim(),
+      Department: String(row["Department"] ?? "").trim(),
+      Shift_Name: String(row["Shift Name"] ?? row["Shift_Name"] ?? "").trim(),
+      Company: String(row["Company"] ?? "").trim(),
+      Location: String(row["Location"] ?? "").trim(),
+      In_Time: String(row["In Time"] ?? row["In_Time"] ?? "00:00:00").trim(),
+      Out_Time: String(row["Out Time"] ?? row["Out_Time"] ?? "00:00:00").trim(),
+      Late_Time: String(row["Late Time"] ?? row["Late_Time"] ?? "00:00:00").trim(),
+      Total_Hour: String(row["Total Hour"] ?? row["Total_Hour"] ?? "00:00:00").trim(),
+      Status: norm(row["Status"] ?? ""),
+      Remarks: ""
+    };
+  }
+
+  function statusBadge(st) {
+    const s = norm(st);
+    if (s === "present") return `<span class="badge present">present</span>`;
+    if (s === "late") return `<span class="badge late">late</span>`;
+    if (s === "absent") return `<span class="badge absent">absent</span>`;
+    if (s.includes("casual")) return `<span class="badge casual">${st}</span>`;
+    return `<span class="badge">${st}</span>`;
+  }
+
+  async function processFiles() {
+    const plantInput = document.getElementById("plantFile");
+    const dhakaInput = document.getElementById("dhakaFile");
+
+    if (!plantInput.files.length) {
+      alert("Please select the Kaspur / Plant attendance file first.");
+      return;
+    }
+
+    const plantRaw = await readSpreadsheet(plantInput.files[0]);
+    const plantRows = plantRaw.map(normalizeRow);
+
+    let dhakaRows = [];
+    if (dhakaInput.files.length) {
+      const dhakaRaw = await readSpreadsheet(dhakaInput.files[0]);
+      dhakaRows = dhakaRaw.map(normalizeRow);
+    }
+
+    // Separate Daily Labour vs Staff from Plant file
+    currentLabour = plantRows.filter(r => {
+      const isLabour = norm(r.Designation) === "daily labour";
+      const isPresentOrLate = r.Status === "present" || r.Status === "late";
+      return isLabour && isPresentOrLate;
+    });
+
+    currentStaff = plantRows.filter(r => norm(r.Designation) !== "daily labour");
+
+    // Merge Cross-Unit Staff (e.g., SCI530) from Dhaka file or manual fallback
+    const existingIds = new Set(currentStaff.map(r => norm(r.ID)));
+    for (const cid of CROSS_UNIT_IDS) {
+      if (!existingIds.has(cid)) {
+        const foundInDhaka = dhakaRows.find(r => norm(r.ID) === cid);
+        if (foundInDhaka) {
+          currentStaff.push({ ...foundInDhaka, Remarks: "" });
+        } else {
+          const def = CROSS_UNIT_DEFAULTS[cid] || { ID: cid.toUpperCase(), Name: "Cross-Unit Staff", Designation: "Staff", Department: "", Shift_Name: "", Company: "", Location: "" };
+          currentStaff.push({
+            ...def,
+            In_Time: "00:00:00",
+            Out_Time: "00:00:00",
+            Late_Time: "00:00:00",
+            Total_Hour: "00:00:00",
+            Status: "absent",
+            Remarks: "",
+            _manualStatus: true
+          });
+        }
+      }
+    }
+
+    renderStaff();
+    renderLabour();
+    document.getElementById("staffSection").style.display = "block";
+    document.getElementById("labourSection").style.display = "block";
+    document.getElementById("actionSection").style.display = "block";
+  }
+
+  function renderStaff() {
+    const presentCount = currentStaff.filter(r => r.Status === "present").length;
+    const lateCount = currentStaff.filter(r => r.Status === "late").length;
+    const absentCount = currentStaff.filter(r => r.Status === "absent").length;
+    const casualCount = currentStaff.filter(r => r.Status.includes("casual")).length;
+
+    document.getElementById("staffStats").innerHTML = `
+      <div class="stat-pill">Total Staff: ${currentStaff.length}</div>
+      <div class="stat-pill">Present: ${presentCount}</div>
+      <div class="stat-pill">Late: ${lateCount}</div>
+      <div class="stat-pill">Absent: ${absentCount}</div>
+      <div class="stat-pill">Casual Leave: ${casualCount}</div>
+    `;
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Designation</th>
+            <th>Department</th>
+            <th>In Time</th>
+            <th>Out Time</th>
+            <th>Late Time</th>
+            <th>Status</th>
+            <th>Remarks (Absent / Late)</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    currentStaff.forEach((r, idx) => {
+      const needsRemark = r.Status === "absent" || r.Status === "late";
+      const statusCell = r._manualStatus
+        ? `<select onchange="updateManualStatus(${idx}, this.value)">
+             <option value="present" ${r.Status === "present" ? "selected" : ""}>present</option>
+             <option value="late" ${r.Status === "late" ? "selected" : ""}>late</option>
+             <option value="absent" ${r.Status === "absent" ? "selected" : ""}>absent</option>
+             <option value="casual leave" ${r.Status.includes("casual") ? "selected" : ""}>casual leave</option>
+           </select>`
+        : statusBadge(r.Status);
+
+      const remarkCell = needsRemark
+        ? `<input type="text" class="remark-input" placeholder="Write reason for ${r.Status}..." value="${r.Remarks || ""}" oninput="currentStaff[${idx}].Remarks = this.value" />`
+        : `<span style="color:#94a3b8;">—</span>`;
+
+      html += `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${r.ID}</td>
+          <td>${r.Name}</td>
+          <td>${r.Designation}</td>
+          <td>${r.Department}</td>
+          <td>${r.In_Time}</td>
+          <td>${r.Out_Time}</td>
+          <td>${r.Late_Time}</td>
+          <td>${statusCell}</td>
+          <td>${remarkCell}</td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    document.getElementById("staffTableWrap").innerHTML = html;
+  }
+
+  function updateManualStatus(idx, val) {
+    currentStaff[idx].Status = norm(val);
+    renderStaff();
+  }
+
+  function renderLabour() {
+    const presentCount = currentLabour.filter(r => r.Status === "present").length;
+    const lateCount = currentLabour.filter(r => r.Status === "late").length;
+
+    document.getElementById("labourStats").innerHTML = `
+      <div class="stat-pill">Included Daily Labour (Present/Late): ${currentLabour.length}</div>
+      <div class="stat-pill">Present: ${presentCount}</div>
+      <div class="stat-pill">Late: ${lateCount}</div>
+    `;
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Designation</th>
+            <th>Department</th>
+            <th>In Time</th>
+            <th>Out Time</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    currentLabour.forEach((r, idx) => {
+      html += `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${r.ID}</td>
+          <td>${r.Name}</td>
+          <td>${r.Designation}</td>
+          <td>${r.Department}</td>
+          <td>${r.In_Time}</td>
+          <td>${r.Out_Time}</td>
+          <td>${statusBadge(r.Status)}</td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    document.getElementById("labourTableWrap").innerHTML = html;
+  }
+
+  function downloadExcel(rows, filename) {
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+    XLSX.writeFile(wb, filename);
+  }
+
+  function saveAndDownload() {
+    const dateStr = document.getElementById("reportDate").value || "2026-11-26";
+
+    // Save to localStorage for monthly view
+    const storageKey = "attendance_records_v1";
+    const allSaved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    allSaved[dateStr] = {
+      date: dateStr,
+      staff: currentStaff,
+      labour: currentLabour
+    };
+    localStorage.setItem(storageKey, JSON.stringify(allSaved));
+    populateMonthDropdown(Object.keys(allSaved));
+
+    // Prepare Staff export rows
+    const staffExport = currentStaff.map((r, i) => ({
+      SL: i + 1,
+      ID: r.ID,
+      Name: r.Name,
+      Designation: r.Designation,
+      Department: r.Department,
+      "In Time": r.In_Time,
+      "Out Time": r.Out_Time,
+      "Late Time": r.Late_Time,
+      Status: r.Status,
+      Remarks: (r.Status === "absent" || r.Status === "late") ? (r.Remarks || "") : ""
+    }));
+
+    // Prepare Daily Labour export rows (no Remarks column)
+    const labourExport = currentLabour.map((r, i) => ({
+      SL: i + 1,
+      ID: r.ID,
+      Name: r.Name,
+      Designation: r.Designation,
+      Department: r.Department,
+      "In Time": r.In_Time,
+      "Out Time": r.Out_Time,
+      Status: r.Status
+    }));
+
+    downloadExcel(staffExport, `Staff_Attendance_${dateStr}.xlsx`);
+    setTimeout(() => {
+      downloadExcel(labourExport, `Daily_Labour_Attendance_${dateStr}.xlsx`);
+    }, 300);
+
+    document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded both Excel files!`;
+  }
+
+  function populateMonthDropdown(dates) {
+    const months = [...new Set(dates.map(d => d.slice(0, 7)))].sort().reverse();
+    const sel = document.getElementById("monthSelect");
+    const currentVal = sel.value;
+    if (!months.length) {
+      sel.innerHTML = `<option value="2026-11">2026-11</option>`;
+      return;
+    }
+    sel.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join("");
+    if (months.includes(currentVal)) sel.value = currentVal;
+  }
+
+  function renderMonthly() {
+    const month = document.getElementById("monthSelect").value;
+    const allSaved = JSON.parse(localStorage.getItem("attendance_records_v1") || "{}");
+    const dayKeys = Object.keys(allSaved).filter(d => d.startsWith(month)).sort();
+
+    if (!dayKeys.length) {
+      document.getElementById("monthlyWrap").innerHTML = `<p class="note">No saved daily records found for ${month} yet.</p>`;
+      return;
+    }
+
+    const staffSummary = {};
+    const labourDays = {};
+
+    for (const d of dayKeys) {
+      const rec = allSaved[d];
+      for (const s of (rec.staff || [])) {
+        if (!staffSummary[s.ID]) {
+          staffSummary[s.ID] = { ID: s.ID, Name: s.Name, Designation: s.Designation, Present: 0, Late: 0, Absent: 0, Casual: 0 };
+        }
+        if (s.Status === "present") staffSummary[s.ID].Present++;
+        else if (s.Status === "late") staffSummary[s.ID].Late++;
+        else if (s.Status === "absent") staffSummary[s.ID].Absent++;
+        else if (s.Status.includes("casual")) staffSummary[s.ID].Casual++;
+      }
+      for (const l of (rec.labour || [])) {
+        if (!labourDays[l.ID]) {
+          labourDays[l.ID] = { ID: l.ID, Name: l.Name, WorkingDays: 0 };
+        }
+        if (l.Status === "present" || l.Status === "late") labourDays[l.ID].WorkingDays++;
+      }
+    }
+
+    let html = `<p class="note">Saved days in ${month}: <strong>${dayKeys.length}</strong> (${dayKeys.join(", ")})</p>`;
+    html += `<h3>Staff Monthly Summary</h3><table><thead><tr><th>ID</th><th>Name</th><th>Designation</th><th>Present</th><th>Late</th><th>Absent</th><th>Casual</th></tr></thead><tbody>`;
+    Object.values(staffSummary).forEach(x => {
+      html += `<tr><td>${x.ID}</td><td>${x.Name}</td><td>${x.Designation}</td><td>${x.Present}</td><td>${x.Late}</td><td>${x.Absent}</td><td>${x.Casual}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+
+    html += `<h3 style="margin-top:16px;">Daily Labour Monthly Working Days</h3><table><thead><tr><th>ID</th><th>Name</th><th>Total Working Days (Present+Late)</th></tr></thead><tbody>`;
+    Object.values(labourDays).forEach(x => {
+      html += `<tr><td>${x.ID}</td><td>${x.Name}</td><td>${x.WorkingDays}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+
+    document.getElementById("monthlyWrap").innerHTML = html;
+  }
+
+  function clearSavedData() {
+    localStorage.removeItem("attendance_records_v1");
+    populateMonthDropdown([]);
+    document.getElementById("monthlyWrap").innerHTML = `<p class="note">Saved browser data cleared.</p>`;
+  }
+
+  window.onload = () => {
+    const allSaved = JSON.parse(localStorage.getItem("attendance_records_v1") || "{}");
+    populateMonthDropdown(Object.keys(allSaved));
+  };
+</script>
+</body>
+</html>
