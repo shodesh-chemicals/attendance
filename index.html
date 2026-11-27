@@ -1277,6 +1277,14 @@
     return { present, absent, casualLeave, late };
   }
 
+  function getLabourPresentCount(rows) {
+    let present = 0;
+    for (const r of (rows || [])) {
+      if (norm(r.Status || "") === "present") present++;
+    }
+    return present;
+  }
+
   async function processFiles() {
     const plantInput = document.getElementById("plantFile");
     const dhakaInput = document.getElementById("dhakaFile");
@@ -1401,7 +1409,7 @@
   }
 
   function renderLabour() {
-    const presentCount = currentLabour.filter(r => r.Status === "present").length;
+    const presentCount = getLabourPresentCount(currentLabour);
     const lateCount = currentLabour.filter(r => r.Status === "late").length;
 
     document.getElementById("labourStats").innerHTML = `
@@ -1539,53 +1547,18 @@
     return `${yyyy}-${mm}-${dd} ${pad(hours)}:${min}:${sec} ${ampm}`;
   }
 
-  function drawStaffSummaryBoxInPDF(doc, counts, pageWidth, rightMargin, yTop) {
-    const boxWidth = 74;
-    const rowHeight = 4.6;
-    const boxHeight = rowHeight * 5 + 2.4;
-    const boxX = pageWidth - rightMargin - boxWidth;
+  function drawInlineSummaryLineInPDF(doc, summaryText, pageWidth, leftMargin, rightMargin, yTop) {
+    doc.setDrawColor(191, 219, 254);
+    doc.setLineWidth(0.35);
+    doc.line(leftMargin, yTop - 2.4, pageWidth - rightMargin, yTop - 2.4);
 
-    doc.setFillColor(248, 250, 252);
-    doc.setDrawColor(30, 58, 138);
-    doc.setLineWidth(0.3);
-    doc.rect(boxX, yTop, boxWidth, boxHeight, "FD");
-
-    doc.setFillColor(30, 58, 138);
-    doc.rect(boxX, yTop, boxWidth, rowHeight, "F");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(7.2);
-    doc.setTextColor(255, 255, 255);
-    doc.text("Office Staff Attendance Summary", boxX + 2.2, yTop + 3.2);
-
-    const items = [
-      ["Present", String(counts.present)],
-      ["Absent", String(counts.absent)],
-      ["Casual Leave (Leave)", String(counts.casualLeave)],
-      ["Late", String(counts.late)]
-    ];
-
-    items.forEach((item, idx) => {
-      const rowY = yTop + rowHeight * (idx + 1);
-      if (idx % 2 === 1) {
-        doc.setFillColor(239, 246, 255);
-        doc.rect(boxX + 0.15, rowY, boxWidth - 0.3, rowHeight, "F");
-      }
-      doc.setDrawColor(203, 213, 225);
-      doc.setLineWidth(0.15);
-      doc.line(boxX, rowY, boxX + boxWidth, rowY);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.1);
-      doc.setTextColor(15, 23, 42);
-      doc.text(item[0], boxX + 2.2, rowY + 3.2);
-
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(30, 58, 138);
-      doc.text(item[1], boxX + boxWidth - 2.5, rowY + 3.2, { align: "right" });
-    });
+    doc.setFontSize(7.8);
+    doc.setTextColor(30, 58, 138);
+    doc.text(summaryText, leftMargin, yTop + 1.2);
   }
 
-  function drawSinglePageReport(doc, dateStr, subTitle, headRow, bodyRows, pageNumber, totalPages, printedAtText, isLabourPage, logoInfo, staffCounts) {
+  function drawSinglePageReport(doc, dateStr, subTitle, headRow, bodyRows, pageNumber, totalPages, printedAtText, isLabourPage, logoInfo, summaryText) {
     if (isLabourPage) {
       doc.addPage("a4", "portrait");
     }
@@ -1630,9 +1603,9 @@
       doc.addImage(logoInfo.dataUrl, "PNG", logoX, logoY, drawW, drawH);
     }
 
-    const fontSize = isLabourPage ? 7.0 : 7.0;
-    const cellPad = isLabourPage ? 1.02 : 0.92;
-    const bottomMargin = isLabourPage ? 28.5 : 34.0;
+    const fontSize = isLabourPage ? 7.0 : 7.1;
+    const cellPad = isLabourPage ? 1.0 : 0.96;
+    const bottomMargin = 31.0;
 
     doc.autoTable({
       startY: 25.4,
@@ -1664,11 +1637,11 @@
     const nameText = "Md. Ibrahim Hossain";
     const footerBottomAnchor = pageHeight - 10.2;
 
-    if (!isLabourPage && staffCounts) {
-      const tableEndY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 2.2 : pageHeight - 36.0;
-      const maxBoxTop = footerBottomAnchor - 26.5;
-      const summaryTopY = Math.min(tableEndY, maxBoxTop);
-      drawStaffSummaryBoxInPDF(doc, staffCounts, pageWidth, rightMargin, summaryTopY);
+    if (summaryText) {
+      const tableEndY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 4.4 : pageHeight - 28.0;
+      const maxLineTop = footerBottomAnchor - 18.2;
+      const summaryTopY = Math.min(tableEndY, maxLineTop);
+      drawInlineSummaryLineInPDF(doc, summaryText, pageWidth, leftMargin, rightMargin, summaryTopY);
     }
 
     doc.setFont("helvetica", "normal");
@@ -1709,6 +1682,7 @@
     const logoInfo = await loadLogoDataUrl();
     const printedAtText = formatPrintTimestamp(new Date());
     const staffCounts = getStaffCounts(currentStaff);
+    const labourPresentCount = getLabourPresentCount(currentLabour);
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
@@ -1736,9 +1710,12 @@
       r.Status
     ]);
 
+    const staffSummaryLine = `Staff Summary:  Present: ${staffCounts.present}   |   Absent: ${staffCounts.absent}   |   Casual Leave (Leave): ${staffCounts.casualLeave}   |   Late: ${staffCounts.late}`;
+    const labourSummaryLine = `Labour Summary:  Present: ${labourPresentCount}`;
+
     const totalPages = 2;
-    drawSinglePageReport(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, 1, totalPages, printedAtText, false, logoInfo, staffCounts);
-    drawSinglePageReport(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, 2, totalPages, printedAtText, true, logoInfo, null);
+    drawSinglePageReport(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, 1, totalPages, printedAtText, false, logoInfo, staffSummaryLine);
+    drawSinglePageReport(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, 2, totalPages, printedAtText, true, logoInfo, labourSummaryLine);
 
     doc.save(`Attendance_Report_${dateStr}.pdf`);
     document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded 2-page A4 PDF report.`;
