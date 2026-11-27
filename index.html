@@ -137,11 +137,11 @@
 <div class="container">
   <div class="card">
     <h1>Daily & Monthly Attendance Report Generator</h1>
-    <p class="note">Upload Kachpur CSV/XLSX + optional Dhaka CSV/XLSX (for cross-unit staff like SCI530).</p>
+    <p class="note">Upload Narayanganj CSV/XLSX + optional Dhaka CSV/XLSX (for cross-unit staff like SCI530).</p>
 
     <div class="grid-2">
       <div class="upload-box">
-        <label>1. Kachpur / Plant Attendance File (Required)</label>
+        <label>1. Narayanganj / Plant Attendance File (Required)</label>
         <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" />
       </div>
       <div class="upload-box">
@@ -199,7 +199,7 @@
       Department: "Sales & Marketing",
       Shift_Name: "9:30 AM to 5:30 PM (Saturday to Thursday)",
       Company: "Shodesh Chemical Industries - Dhaka",
-      Location: "Kachpur"
+      Location: "Narayanganj"
     }
   };
 
@@ -257,7 +257,7 @@
     const dhakaInput = document.getElementById("dhakaFile");
 
     if (!plantInput.files.length) {
-      alert("Please select the Kachpur / Plant attendance file first.");
+      alert("Please select the Narayanganj / Plant attendance file first.");
       return;
     }
 
@@ -285,7 +285,7 @@
         if (foundInDhaka) {
           currentStaff.push({ ...foundInDhaka, Remarks: "" });
         } else {
-          const def = CROSS_UNIT_DEFAULTS[cid] || { ID: cid.toUpperCase(), Name: "Cross-Unit Staff", Designation: "Staff", Department: "", Shift_Name: "", Company: "", Location: "" };
+          const def = CROSS_UNIT_DEFAULTS[cid] || { ID: cid.toUpperCase(), Name: "Cross-Unit Staff", Designation: "Staff", Department: "", Shift_Name: "", Company: "", Location: "Narayanganj" };
           currentStaff.push({
             ...def,
             In_Time: "00:00:00",
@@ -546,10 +546,7 @@
       r.Status
     ]);
 
-    // Page 1: Office Staff Attendance List
     drawPdfPage(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, false);
-
-    // Page 2: Daily Labour Attendance List
     drawPdfPage(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, true);
 
     doc.save(`Attendance_Report_${dateStr}.pdf`);
@@ -628,4 +625,4 @@
   };
 </script>
 </body>
-</html>
+  </html>
