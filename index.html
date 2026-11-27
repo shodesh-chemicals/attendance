@@ -474,7 +474,6 @@
             <th>Designation</th>
             <th>Department</th>
             <th>In Time</th>
-            <th>Out Time</th>
             <th>Late Time</th>
             <th>Status</th>
             <th>Remarks (Absent / Late)</th>
@@ -506,7 +505,6 @@
           <td>${r.Designation}</td>
           <td>${r.Department}</td>
           <td>${r.In_Time}</td>
-          <td>${r.Out_Time}</td>
           <td>${r.Late_Time}</td>
           <td>${statusCell}</td>
           <td>${remarkCell}</td>
@@ -543,7 +541,6 @@
             <th>Designation</th>
             <th>Department</th>
             <th>In Time</th>
-            <th>Out Time</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -559,7 +556,6 @@
           <td>${r.Designation}</td>
           <td>${r.Department}</td>
           <td>${r.In_Time}</td>
-          <td>${r.Out_Time}</td>
           <td>${statusBadge(r.Status)}</td>
         </tr>
       `;
@@ -601,7 +597,6 @@
       Designation: r.Designation,
       Department: r.Department,
       "In Time": r.In_Time,
-      "Out Time": r.Out_Time,
       "Late Time": r.Late_Time,
       Status: r.Status,
       Remarks: (r.Status === "absent" || r.Status === "late") ? (r.Remarks || "") : ""
@@ -614,7 +609,6 @@
       Designation: r.Designation,
       Department: r.Department,
       "In Time": r.In_Time,
-      "Out Time": r.Out_Time,
       Status: r.Status
     }));
 
@@ -651,7 +645,21 @@
     });
   }
 
-  function drawSinglePageReport(doc, dateStr, subTitle, headRow, bodyRows, isLabourPage, logoInfo) {
+  function formatPrintTimestamp(now) {
+    const pad = (n) => String(n).padStart(2, "0");
+    const yyyy = now.getFullYear();
+    const mm = pad(now.getMonth() + 1);
+    const dd = pad(now.getDate());
+    let hours = now.getHours();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    const min = pad(now.getMinutes());
+    const sec = pad(now.getSeconds());
+    return `${yyyy}-${mm}-${dd} ${pad(hours)}:${min}:${sec} ${ampm}`;
+  }
+
+  function drawSinglePageReport(doc, dateStr, subTitle, headRow, bodyRows, pageNumber, totalPages, printedAtText, isLabourPage, logoInfo) {
     if (isLabourPage) {
       doc.addPage("a4", "portrait");
     }
@@ -664,7 +672,7 @@
     // Header block from top of company name down to sub-title line
     const headerTopY = 7.5;
     const subTitleY = 23.8;
-    const headerSpanHeight = subTitleY - headerTopY + 1.2; // ~17.5 mm total height
+    const headerSpanHeight = subTitleY - headerTopY + 1.2;
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12.5);
@@ -683,7 +691,7 @@
     doc.setTextColor(15, 118, 110);
     doc.text(subTitle, leftMargin, subTitleY);
 
-    // Tall company logo on the right spanning from top of company name to bottom of sub-title
+    // Large logo on the right spanning from top of company name to bottom of sub-title
     if (logoInfo && logoInfo.dataUrl) {
       const boxMaxH = headerSpanHeight;
       const boxMaxW = 36;
@@ -726,25 +734,50 @@
       alternateRowStyles: {
         fillColor: [248, 250, 252]
       },
-      margin: { left: leftMargin, right: rightMargin, top: 26.2, bottom: 16 }
+      margin: { left: leftMargin, right: rightMargin, top: 26.2, bottom: 25 }
     });
 
-    // Footer at bottom
+    // Reported by block: "Reported by" -> Name -> dash slightly wider than name -> Designation
+    const nameText = "Md. Ibrahim Hossain";
+    const baseFooterY = pageHeight - 11.5;
+
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(30, 41, 59);
-    doc.text("- Reported by Md. Ibrahim Hossain, Responsible Laboratory Chemist", leftMargin, pageHeight - 10.5);
+    doc.setFontSize(8.2);
+    doc.setTextColor(51, 65, 85);
+    doc.text("Reported by", leftMargin, baseFooterY - 10.5);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.8);
+    doc.setTextColor(15, 23, 42);
+    doc.text(nameText, leftMargin, baseFooterY - 6.2);
+
+    const nameWidth = doc.getTextWidth(nameText);
+    const dashWidth = nameWidth + 5; // slightly wider than name
+    doc.setDrawColor(71, 85, 105);
+    doc.setLineWidth(0.45);
+    doc.line(leftMargin, baseFooterY - 4.3, leftMargin + dashWidth, baseFooterY - 4.3);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.2);
+    doc.setTextColor(51, 65, 85);
+    doc.text("Responsible Laboratory Chemist", leftMargin, baseFooterY - 0.5);
+
+    // Very small print date/time and page number at the bottom footer
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
     doc.setTextColor(100, 116, 139);
-    doc.text("This document has been produced electronically and is valid without a signature.", leftMargin, pageHeight - 6);
+    doc.text(`Printed: ${printedAtText}`, leftMargin, pageHeight - 4.2);
+    doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - rightMargin, pageHeight - 4.2, { align: "right" });
   }
 
   async function saveAndDownloadPDF() {
     const dateStr = saveDailyData();
     const logoInfo = await loadLogoDataUrl();
+    const printedAtText = formatPrintTimestamp(new Date());
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-    const staffHead = ["SL", "ID", "Name", "Designation", "Dept", "In", "Out", "Late Time", "Status", "Remarks"];
+    const staffHead = ["SL", "ID", "Name", "Designation", "Dept", "In Time", "Late Time", "Status", "Remarks"];
     const staffBody = currentStaff.map((r, i) => [
       String(i + 1),
       r.ID,
@@ -752,13 +785,12 @@
       r.Designation,
       r.Department,
       r.In_Time,
-      r.Out_Time,
       r.Late_Time,
       r.Status,
       (r.Status === "absent" || r.Status === "late") ? (r.Remarks || "") : ""
     ]);
 
-    const labourHead = ["SL", "ID", "Name", "Designation", "Department", "In Time", "Out Time", "Status"];
+    const labourHead = ["SL", "ID", "Name", "Designation", "Department", "In Time", "Status"];
     const labourBody = currentLabour.map((r, i) => [
       String(i + 1),
       r.ID,
@@ -766,15 +798,12 @@
       r.Designation,
       r.Department,
       r.In_Time,
-      r.Out_Time,
       r.Status
     ]);
 
-    // A4 Page 1: All Office Staff in 1 page (A4 Landscape)
-    drawSinglePageReport(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, false, logoInfo);
-
-    // A4 Page 2: All Present/Late Daily Labour in 1 page (A4 Portrait)
-    drawSinglePageReport(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, true, logoInfo);
+    const totalPages = 2;
+    drawSinglePageReport(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, 1, totalPages, printedAtText, false, logoInfo);
+    drawSinglePageReport(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, 2, totalPages, printedAtText, true, logoInfo);
 
     doc.save(`Attendance_Report_${dateStr}.pdf`);
     document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded 2-page A4 PDF report.`;
