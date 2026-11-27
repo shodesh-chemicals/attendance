@@ -62,8 +62,8 @@
       gap: 14px;
     }
     .brand-logo-preview {
-      width: 54px;
-      height: 54px;
+      width: 58px;
+      height: 58px;
       object-fit: contain;
       border-radius: 10px;
       border: 1px solid var(--border);
@@ -309,11 +309,11 @@
 
   <div class="card" id="actionSection" style="display:none;">
     <h2>Save & Export Reports</h2>
-    <p class="subtitle">Save daily attendance data and export Excel (.xlsx) or 2-page PDF with company logo.</p>
+    <p class="subtitle">Save daily attendance data and export Excel (.xlsx) or 2-page A4 PDF with company logo.</p>
     <div class="controls-row" style="border-top:none; padding-top:6px; margin-top:8px;">
       <button onclick="saveDailyData()">Save Daily Data</button>
       <button class="secondary" onclick="saveAndDownloadExcel()">Save & Download Excel (.xlsx)</button>
-      <button class="pdf-btn" onclick="saveAndDownloadPDF()">Save & Download PDF (2 Pages)</button>
+      <button class="pdf-btn" onclick="saveAndDownloadPDF()">Save & Download PDF (2 A4 Pages)</button>
     </div>
     <div id="saveMsg" class="note status-banner"></div>
   </div>
@@ -661,45 +661,49 @@
     const leftMargin = 10;
     const rightMargin = 10;
 
-    // Compact header on left
+    // Header block from top of company name down to sub-title line
+    const headerTopY = 7.5;
+    const subTitleY = 23.8;
+    const headerSpanHeight = subTitleY - headerTopY + 1.2; // ~17.5 mm total height
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
+    doc.setFontSize(12.5);
     doc.setTextColor(15, 23, 42);
-    doc.text("Shodesh Chemical Industries", leftMargin, 11);
+    doc.text("Shodesh Chemical Industries", leftMargin, 11.2);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.setTextColor(71, 85, 105);
-    doc.text("174/4 Muradpur, Bandar, Narayanganj", leftMargin, 15.5);
-    doc.text(`Date: ${dateStr}`, leftMargin, 19.5);
+    doc.text("174/4 Muradpur, Bandar, Narayanganj", leftMargin, 15.4);
+    doc.text(`Date: ${dateStr}`, leftMargin, 19.3);
 
-    // Company logo on right side
+    // Sub-title right below date
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9.8);
+    doc.setTextColor(15, 118, 110);
+    doc.text(subTitle, leftMargin, subTitleY);
+
+    // Tall company logo on the right spanning from top of company name to bottom of sub-title
     if (logoInfo && logoInfo.dataUrl) {
-      const boxMaxW = 20;
-      const boxMaxH = 13;
+      const boxMaxH = headerSpanHeight;
+      const boxMaxW = 36;
       const ratio = logoInfo.width / logoInfo.height;
-      let drawW = boxMaxW;
-      let drawH = drawW / ratio;
-      if (drawH > boxMaxH) {
-        drawH = boxMaxH;
-        drawW = drawH * ratio;
+      let drawH = boxMaxH;
+      let drawW = drawH * ratio;
+      if (drawW > boxMaxW) {
+        drawW = boxMaxW;
+        drawH = drawW / ratio;
       }
       const logoX = pageWidth - rightMargin - drawW;
-      const logoY = 7.5;
+      const logoY = headerTopY + (headerSpanHeight - drawH) / 2;
       doc.addImage(logoInfo.dataUrl, "PNG", logoX, logoY, drawW, drawH);
     }
 
-    // Sub-title below date
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(15, 118, 110);
-    doc.text(subTitle, leftMargin, 24.5);
-
-    const fontSize = isLabourPage ? 7.2 : 7.5;
-    const cellPad = isLabourPage ? 1.15 : 1.25;
+    const fontSize = isLabourPage ? 7.1 : 7.4;
+    const cellPad = isLabourPage ? 1.1 : 1.2;
 
     doc.autoTable({
-      startY: 26.8,
+      startY: 26.2,
       head: [headRow],
       body: bodyRows,
       rowPageBreak: "avoid",
@@ -722,10 +726,10 @@
       alternateRowStyles: {
         fillColor: [248, 250, 252]
       },
-      margin: { left: leftMargin, right: rightMargin, top: 26.8, bottom: 16 }
+      margin: { left: leftMargin, right: rightMargin, top: 26.2, bottom: 16 }
     });
 
-    // Compact footer at bottom
+    // Footer at bottom
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(30, 41, 59);
@@ -766,14 +770,14 @@
       r.Status
     ]);
 
-    // Page 1: All Office Staff in 1 page (Landscape)
+    // A4 Page 1: All Office Staff in 1 page (A4 Landscape)
     drawSinglePageReport(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, false, logoInfo);
 
-    // Page 2: All Present/Late Daily Labour in 1 page (Portrait)
+    // A4 Page 2: All Present/Late Daily Labour in 1 page (A4 Portrait)
     drawSinglePageReport(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, true, logoInfo);
 
     doc.save(`Attendance_Report_${dateStr}.pdf`);
-    document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded 2-page PDF report.`;
+    document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded 2-page A4 PDF report.`;
   }
 
   function populateMonthDropdown(dates) {
