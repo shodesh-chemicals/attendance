@@ -908,7 +908,7 @@
         if (st === "present") presentDays++;
         else if (st === "late") lateDays++;
         else if (st === "absent") absentDays++;
-        else if (st.includes("casual")) casualDays++;
+        else if (st.includes("casual") || st.includes("leave")) casualDays++;
 
         logs.push({
           date: d,
@@ -1256,8 +1256,25 @@
     if (s === "present") return `<span class="badge present">present</span>`;
     if (s === "late") return `<span class="badge late">late</span>`;
     if (s === "absent") return `<span class="badge absent">absent</span>`;
-    if (s.includes("casual")) return `<span class="badge casual">${st}</span>`;
+    if (s.includes("casual") || s.includes("leave")) return `<span class="badge casual">${st}</span>`;
     return `<span class="badge">${st}</span>`;
+  }
+
+  function getStaffCounts(rows) {
+    let present = 0;
+    let absent = 0;
+    let casualLeave = 0;
+    let late = 0;
+
+    for (const r of (rows || [])) {
+      const s = norm(r.Status || "");
+      if (s === "present") present++;
+      else if (s === "absent") absent++;
+      else if (s.includes("casual") || s.includes("leave")) casualLeave++;
+      else if (s === "late") late++;
+    }
+
+    return { present, absent, casualLeave, late };
   }
 
   async function processFiles() {
@@ -1316,17 +1333,14 @@
   }
 
   function renderStaff() {
-    const presentCount = currentStaff.filter(r => r.Status === "present").length;
-    const lateCount = currentStaff.filter(r => r.Status === "late").length;
-    const absentCount = currentStaff.filter(r => r.Status === "absent").length;
-    const casualCount = currentStaff.filter(r => r.Status.includes("casual")).length;
+    const counts = getStaffCounts(currentStaff);
 
     document.getElementById("staffStats").innerHTML = `
       <div class="stat-pill">Total Staff: ${currentStaff.length}</div>
-      <div class="stat-pill">Present: ${presentCount}</div>
-      <div class="stat-pill">Late: ${lateCount}</div>
-      <div class="stat-pill">Absent: ${absentCount}</div>
-      <div class="stat-pill">Casual Leave: ${casualCount}</div>
+      <div class="stat-pill">Present: ${counts.present}</div>
+      <div class="stat-pill">Absent: ${counts.absent}</div>
+      <div class="stat-pill">Casual Leave (Leave): ${counts.casualLeave}</div>
+      <div class="stat-pill">Late: ${counts.late}</div>
     `;
 
     let html = `
@@ -1354,7 +1368,7 @@
              <option value="present" ${r.Status === "present" ? "selected" : ""}>present</option>
              <option value="late" ${r.Status === "late" ? "selected" : ""}>late</option>
              <option value="absent" ${r.Status === "absent" ? "selected" : ""}>absent</option>
-             <option value="casual leave" ${r.Status.includes("casual") ? "selected" : ""}>casual leave</option>
+             <option value="casual leave" ${r.Status.includes("casual") || r.Status.includes("leave") ? "selected" : ""}>casual leave</option>
            </select>`
         : statusBadge(r.Status);
 
@@ -1525,7 +1539,53 @@
     return `${yyyy}-${mm}-${dd} ${pad(hours)}:${min}:${sec} ${ampm}`;
   }
 
-  function drawSinglePageReport(doc, dateStr, subTitle, headRow, bodyRows, pageNumber, totalPages, printedAtText, isLabourPage, logoInfo) {
+  function drawStaffSummaryBoxInPDF(doc, counts, pageWidth, rightMargin, yTop) {
+    const boxWidth = 74;
+    const rowHeight = 4.6;
+    const boxHeight = rowHeight * 5 + 2.4;
+    const boxX = pageWidth - rightMargin - boxWidth;
+
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(30, 58, 138);
+    doc.setLineWidth(0.3);
+    doc.rect(boxX, yTop, boxWidth, boxHeight, "FD");
+
+    doc.setFillColor(30, 58, 138);
+    doc.rect(boxX, yTop, boxWidth, rowHeight, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.2);
+    doc.setTextColor(255, 255, 255);
+    doc.text("Office Staff Attendance Summary", boxX + 2.2, yTop + 3.2);
+
+    const items = [
+      ["Present", String(counts.present)],
+      ["Absent", String(counts.absent)],
+      ["Casual Leave (Leave)", String(counts.casualLeave)],
+      ["Late", String(counts.late)]
+    ];
+
+    items.forEach((item, idx) => {
+      const rowY = yTop + rowHeight * (idx + 1);
+      if (idx % 2 === 1) {
+        doc.setFillColor(239, 246, 255);
+        doc.rect(boxX + 0.15, rowY, boxWidth - 0.3, rowHeight, "F");
+      }
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.15);
+      doc.line(boxX, rowY, boxX + boxWidth, rowY);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.1);
+      doc.setTextColor(15, 23, 42);
+      doc.text(item[0], boxX + 2.2, rowY + 3.2);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 58, 138);
+      doc.text(item[1], boxX + boxWidth - 2.5, rowY + 3.2, { align: "right" });
+    });
+  }
+
+  function drawSinglePageReport(doc, dateStr, subTitle, headRow, bodyRows, pageNumber, totalPages, printedAtText, isLabourPage, logoInfo, staffCounts) {
     if (isLabourPage) {
       doc.addPage("a4", "portrait");
     }
@@ -1570,8 +1630,9 @@
       doc.addImage(logoInfo.dataUrl, "PNG", logoX, logoY, drawW, drawH);
     }
 
-    const fontSize = isLabourPage ? 7.0 : 7.3;
-    const cellPad = isLabourPage ? 1.02 : 1.12;
+    const fontSize = isLabourPage ? 7.0 : 7.0;
+    const cellPad = isLabourPage ? 1.02 : 0.92;
+    const bottomMargin = isLabourPage ? 28.5 : 34.0;
 
     doc.autoTable({
       startY: 25.4,
@@ -1592,16 +1653,23 @@
         fillColor: [30, 58, 138],
         textColor: [255, 255, 255],
         fontStyle: "bold",
-        cellPadding: cellPad + 0.2
+        cellPadding: cellPad + 0.15
       },
       alternateRowStyles: {
         fillColor: [248, 250, 252]
       },
-      margin: { left: leftMargin, right: rightMargin, top: 25.4, bottom: 28.5 }
+      margin: { left: leftMargin, right: rightMargin, top: 25.4, bottom: bottomMargin }
     });
 
     const nameText = "Md. Ibrahim Hossain";
     const footerBottomAnchor = pageHeight - 10.2;
+
+    if (!isLabourPage && staffCounts) {
+      const tableEndY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 2.2 : pageHeight - 36.0;
+      const maxBoxTop = footerBottomAnchor - 26.5;
+      const summaryTopY = Math.min(tableEndY, maxBoxTop);
+      drawStaffSummaryBoxInPDF(doc, staffCounts, pageWidth, rightMargin, summaryTopY);
+    }
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.0);
@@ -1640,6 +1708,7 @@
     const dateStr = saveDailyData();
     const logoInfo = await loadLogoDataUrl();
     const printedAtText = formatPrintTimestamp(new Date());
+    const staffCounts = getStaffCounts(currentStaff);
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
@@ -1668,8 +1737,8 @@
     ]);
 
     const totalPages = 2;
-    drawSinglePageReport(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, 1, totalPages, printedAtText, false, logoInfo);
-    drawSinglePageReport(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, 2, totalPages, printedAtText, true, logoInfo);
+    drawSinglePageReport(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, 1, totalPages, printedAtText, false, logoInfo, staffCounts);
+    drawSinglePageReport(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, 2, totalPages, printedAtText, true, logoInfo, null);
 
     doc.save(`Attendance_Report_${dateStr}.pdf`);
     document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded 2-page A4 PDF report.`;
@@ -1709,7 +1778,7 @@
         if (s.Status === "present") staffSummary[s.ID].Present++;
         else if (s.Status === "late") staffSummary[s.ID].Late++;
         else if (s.Status === "absent") staffSummary[s.ID].Absent++;
-        else if (s.Status.includes("casual")) staffSummary[s.ID].Casual++;
+        else if (s.Status.includes("casual") || s.Status.includes("leave")) staffSummary[s.ID].Casual++;
       }
       for (const l of (rec.labour || [])) {
         if (!labourDays[l.ID]) {
