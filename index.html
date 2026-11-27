@@ -4,123 +4,246 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily & Monthly Attendance Report System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <style>
+    :root {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --accent: #1d4ed8;
+      --accent-hover: #1e40af;
+      --pdf: #6d28d9;
+      --pdf-hover: #5b21b6;
+      --danger: #b91c1c;
+      --danger-hover: #991b1b;
+    }
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f9;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #e2e8f0 0%, var(--bg) 220px);
       margin: 0;
-      padding: 20px;
-      color: #1f2937;
+      padding: 24px 16px 48px;
+      color: var(--text);
+      line-height: 1.5;
     }
     .container {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 0 auto;
     }
-    .card {
-      background: #ffffff;
-      border-radius: 10px;
-      padding: 20px;
+    .top-banner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--primary);
+      border-radius: 14px;
+      padding: 22px 24px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
     }
-    h1, h2, h3 {
-      margin-top: 0;
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-logo-preview {
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-soft);
+      padding: 4px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .subtitle {
+      margin: 4px 0 0;
+      font-size: 13.5px;
+      color: var(--muted);
     }
     .grid-2 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
       gap: 16px;
     }
     .upload-box {
-      border: 2px dashed #cbd5e1;
-      border-radius: 8px;
-      padding: 14px;
-      background: #f8fafc;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 16px;
+      background: var(--surface-soft);
+      transition: border-color 0.2s, background 0.2s;
     }
-    label {
+    .upload-box:hover {
+      border-color: var(--primary);
+      background: #f0fdfa;
+    }
+    label.field-label {
       display: block;
-      font-weight: bold;
-      margin-bottom: 6px;
-      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 13.5px;
+      color: var(--text);
     }
     input[type="date"], input[type="file"], select, input[type="text"] {
-      padding: 8px 10px;
+      padding: 9px 12px;
       border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+    input[type="file"] {
+      width: 100%;
+      background: #fff;
     }
     input[type="text"].remark-input {
-      width: 95%;
+      width: 100%;
+      min-width: 150px;
       border-color: #f59e0b;
       background: #fffbeb;
     }
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
     button {
-      background: #0f766e;
+      background: var(--primary);
       color: #fff;
       border: none;
       padding: 10px 16px;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-      margin-right: 8px;
-      margin-top: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      font-family: inherit;
+      transition: background 0.15s, transform 0.05s;
     }
     button:hover {
-      background: #115e59;
+      background: var(--primary-hover);
+    }
+    button:active {
+      transform: translateY(1px);
     }
     button.secondary {
-      background: #2563eb;
+      background: var(--accent);
     }
     button.secondary:hover {
-      background: #1d4ed8;
+      background: var(--accent-hover);
     }
     button.pdf-btn {
-      background: #7c3aed;
+      background: var(--pdf);
     }
     button.pdf-btn:hover {
-      background: #6d28d9;
+      background: var(--pdf-hover);
     }
     button.danger {
-      background: #dc2626;
+      background: var(--danger);
+    }
+    button.danger:hover {
+      background: var(--danger-hover);
     }
     .stats {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
-      margin: 12px 0;
+      gap: 10px;
+      margin: 12px 0 16px;
     }
     .stat-pill {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      padding: 8px 14px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+      padding: 6px 13px;
       border-radius: 999px;
-      font-size: 13px;
-      font-weight: bold;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
       font-size: 13px;
+      background: #fff;
     }
     th, td {
-      border: 1px solid #e2e8f0;
-      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid #f1f5f9;
+      padding: 9px 10px;
       text-align: left;
+      white-space: nowrap;
+    }
+    td:last-child, th:last-child {
+      border-right: none;
     }
     th {
-      background: #f1f5f9;
+      background: #0f172a;
+      color: #f8fafc;
+      font-weight: 600;
+      font-size: 12.5px;
+    }
+    tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    tbody tr:hover {
+      background: #f0fdfa;
     }
     .badge {
+      display: inline-block;
       padding: 3px 8px;
-      border-radius: 4px;
-      font-weight: bold;
+      border-radius: 999px;
+      font-weight: 600;
       text-transform: uppercase;
       font-size: 11px;
+      letter-spacing: 0.02em;
     }
     .present { background: #dcfce7; color: #166534; }
     .late { background: #fef3c7; color: #92400e; }
@@ -128,30 +251,45 @@
     .casual { background: #e0e7ff; color: #3730a3; }
     .note {
       font-size: 13px;
-      color: #475569;
-      margin-top: 6px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+    .status-banner {
+      margin-top: 12px;
+      font-weight: 600;
+      color: var(--primary);
     }
   </style>
 </head>
 <body>
 <div class="container">
-  <div class="card">
-    <h1>Daily & Monthly Attendance Report Generator</h1>
-    <p class="note">Upload Narayanganj CSV/XLSX + optional Dhaka CSV/XLSX (for cross-unit staff like SCI530).</p>
+  <div class="top-banner">
+    <div class="brand-block">
+      <img src="logo.png" alt="Company Logo" class="brand-logo-preview" onerror="this.style.display='none'" />
+      <div>
+        <h1>Daily & Monthly Attendance Report System</h1>
+        <p class="subtitle">Shodesh Chemical Industries — 174/4 Muradpur, Bandar, Narayanganj</p>
+      </div>
+    </div>
+  </div>
 
-    <div class="grid-2">
+  <div class="card">
+    <h2>Upload Attendance Files</h2>
+    <p class="subtitle">Upload Narayanganj CSV/XLSX file + optional Dhaka CSV/XLSX file (for cross-unit staff like SCI530).</p>
+
+    <div class="grid-2" style="margin-top: 14px;">
       <div class="upload-box">
-        <label>1. Narayanganj / Plant Attendance File (Required)</label>
+        <label class="field-label" for="plantFile">1. Narayanganj / Plant Attendance File (Required)</label>
         <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" />
       </div>
       <div class="upload-box">
-        <label>2. Dhaka File (Optional — for SCI530 Md Zahidul Islam)</label>
+        <label class="field-label" for="dhakaFile">2. Dhaka File (Optional — for SCI530 Md Zahidul Islam)</label>
         <input type="file" id="dhakaFile" accept=".csv,.xlsx,.xls" />
       </div>
     </div>
 
-    <div style="margin-top: 14px;">
-      <label for="reportDate" style="display:inline-block; margin-right:8px;">Report Date:</label>
+    <div class="controls-row">
+      <label class="field-label" for="reportDate" style="margin:0;">Report Date:</label>
       <input type="date" id="reportDate" value="2026-11-26" />
       <button onclick="processFiles()">Load & Filter Reports</button>
     </div>
@@ -160,32 +298,37 @@
   <div class="card" id="staffSection" style="display:none;">
     <h2>Office Staff Attendance List</h2>
     <div class="stats" id="staffStats"></div>
-    <div id="staffTableWrap"></div>
+    <div class="table-responsive" id="staffTableWrap"></div>
   </div>
 
   <div class="card" id="labourSection" style="display:none;">
     <h2>Daily Labour Attendance List (Present & Late Only — No Remarks)</h2>
     <div class="stats" id="labourStats"></div>
-    <div id="labourTableWrap"></div>
+    <div class="table-responsive" id="labourTableWrap"></div>
   </div>
 
   <div class="card" id="actionSection" style="display:none;">
     <h2>Save & Export Reports</h2>
-    <button onclick="saveDailyData()">Save Daily Data</button>
-    <button class="secondary" onclick="saveAndDownloadExcel()">Save & Download Excel (.xlsx)</button>
-    <button class="pdf-btn" onclick="saveAndDownloadPDF()">Save & Download PDF (2 Pages)</button>
-    <div id="saveMsg" class="note"></div>
+    <p class="subtitle">Save daily attendance data and export Excel (.xlsx) or 2-page PDF with company logo.</p>
+    <div class="controls-row" style="border-top:none; padding-top:6px; margin-top:8px;">
+      <button onclick="saveDailyData()">Save Daily Data</button>
+      <button class="secondary" onclick="saveAndDownloadExcel()">Save & Download Excel (.xlsx)</button>
+      <button class="pdf-btn" onclick="saveAndDownloadPDF()">Save & Download PDF (2 Pages)</button>
+    </div>
+    <div id="saveMsg" class="note status-banner"></div>
   </div>
 
   <div class="card">
     <h2>Monthly Report (From Saved Daily Data in This Browser)</h2>
-    <label for="monthSelect" style="display:inline-block; margin-right:8px;">Select Month:</label>
-    <select id="monthSelect" onchange="renderMonthly()">
-      <option value="2026-11">2026-11</option>
-    </select>
-    <button onclick="renderMonthly()">View Monthly Summary</button>
-    <button class="danger" onclick="clearSavedData()">Clear Saved Browser Data</button>
-    <div id="monthlyWrap" style="margin-top:12px;"></div>
+    <div class="controls-row" style="border-top:none; padding-top:0; margin-top:8px;">
+      <label class="field-label" for="monthSelect" style="margin:0;">Select Month:</label>
+      <select id="monthSelect" onchange="renderMonthly()">
+        <option value="2026-11">2026-11</option>
+      </select>
+      <button onclick="renderMonthly()">View Monthly Summary</button>
+      <button class="danger" onclick="clearSavedData()">Clear Saved Browser Data</button>
+    </div>
+    <div id="monthlyWrap" style="margin-top:14px;"></div>
   </div>
 </div>
 
@@ -325,7 +468,7 @@
       <table>
         <thead>
           <tr>
-            <th>#</th>
+            <th>SL</th>
             <th>ID</th>
             <th>Name</th>
             <th>Designation</th>
@@ -394,7 +537,7 @@
       <table>
         <thead>
           <tr>
-            <th>#</th>
+            <th>SL</th>
             <th>ID</th>
             <th>Name</th>
             <th>Designation</th>
@@ -437,6 +580,7 @@
     };
     localStorage.setItem(storageKey, JSON.stringify(allSaved));
     populateMonthDropdown(Object.keys(allSaved));
+    document.getElementById("saveMsg").textContent = `Daily attendance data saved for ${dateStr}.`;
     return dateStr;
   }
 
@@ -482,46 +626,122 @@
     document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded both Excel files.`;
   }
 
-  function drawPdfPage(doc, dateStr, subTitle, headRow, bodyRows, isSecondPage) {
+  function loadLogoDataUrl() {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth || 120;
+          canvas.height = img.naturalHeight || 120;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          resolve({
+            dataUrl: canvas.toDataURL("image/png"),
+            width: canvas.width,
+            height: canvas.height
+          });
+        } catch (err) {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = "logo.png?t=" + Date.now();
+    });
+  }
+
+  function drawPdfPage(doc, dateStr, subTitle, headRow, bodyRows, orientation, isSecondPage, logoInfo) {
     if (isSecondPage) {
-      doc.addPage();
+      doc.addPage("a4", orientation);
     }
 
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const leftMargin = 14;
+    const rightMargin = 14;
+
+    // Header text on left
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("Shodesh Chemical Industries", 14, 16);
+    doc.setFontSize(15);
+    doc.setTextColor(15, 23, 42);
+    doc.text("Shodesh Chemical Industries", leftMargin, 16);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text("174/4 Muradpur, Bandar, Narayanganj", 14, 22);
-    doc.text(`Date: ${dateStr}`, 14, 28);
+    doc.setTextColor(71, 85, 105);
+    doc.text("174/4 Muradpur, Bandar, Narayanganj", leftMargin, 22);
+    doc.text(`Date: ${dateStr}`, leftMargin, 28);
 
+    // Company logo on right side
+    if (logoInfo && logoInfo.dataUrl) {
+      const boxMaxW = 24;
+      const boxMaxH = 18;
+      const ratio = logoInfo.width / logoInfo.height;
+      let drawW = boxMaxW;
+      let drawH = drawW / ratio;
+      if (drawH > boxMaxH) {
+        drawH = boxMaxH;
+        drawW = drawH * ratio;
+      }
+      const logoX = pageWidth - rightMargin - drawW;
+      const logoY = 11;
+      doc.addImage(logoInfo.dataUrl, "PNG", logoX, logoY, drawW, drawH);
+    }
+
+    // Divider line
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.4);
+    doc.line(leftMargin, 31.5, pageWidth - rightMargin, 31.5);
+
+    // Sub-title below date
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.text(subTitle, 14, 35);
+    doc.setFontSize(11.5);
+    doc.setTextColor(15, 118, 110);
+    doc.text(subTitle, leftMargin, 37.5);
 
     doc.autoTable({
-      startY: 39,
+      startY: 41,
       head: [headRow],
       body: bodyRows,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [15, 118, 110] },
-      margin: { left: 14, right: 14, bottom: 26 }
+      styles: {
+        font: "helvetica",
+        fontSize: 8.2,
+        cellPadding: 2.2,
+        textColor: [30, 41, 59],
+        lineColor: [203, 213, 225],
+        lineWidth: 0.2
+      },
+      headStyles: {
+        fillColor: [15, 118, 110],
+        textColor: [255, 255, 255],
+        fontStyle: "bold"
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      },
+      margin: { left: leftMargin, right: rightMargin, bottom: 26 }
     });
 
-    const pageHeight = doc.internal.pageSize.getHeight();
+    // Footer at bottom
+    doc.setDrawColor(203, 213, 225);
+    doc.line(leftMargin, pageHeight - 21, pageWidth - rightMargin, pageHeight - 21);
+
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text("- Reported by Md. Ibrahim Hossain, Responsible Laboratory Chemist", 14, pageHeight - 16);
-    doc.text("This document has been produced electronically and is valid without a signature.", 14, pageHeight - 10);
+    doc.setTextColor(30, 41, 59);
+    doc.text("- Reported by Md. Ibrahim Hossain, Responsible Laboratory Chemist", leftMargin, pageHeight - 15.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text("This document has been produced electronically and is valid without a signature.", leftMargin, pageHeight - 10);
   }
 
-  function saveAndDownloadPDF() {
+  async function saveAndDownloadPDF() {
     const dateStr = saveDailyData();
+    const logoInfo = await loadLogoDataUrl();
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-    const staffHead = ["#", "ID", "Name", "Designation", "Dept", "In", "Out", "Status", "Remarks"];
+    const staffHead = ["SL", "ID", "Name", "Designation", "Department", "In Time", "Out Time", "Late Time", "Status", "Remarks"];
     const staffBody = currentStaff.map((r, i) => [
       String(i + 1),
       r.ID,
@@ -530,11 +750,12 @@
       r.Department,
       r.In_Time,
       r.Out_Time,
+      r.Late_Time,
       r.Status,
       (r.Status === "absent" || r.Status === "late") ? (r.Remarks || "") : ""
     ]);
 
-    const labourHead = ["#", "ID", "Name", "Designation", "Department", "In Time", "Out Time", "Status"];
+    const labourHead = ["SL", "ID", "Name", "Designation", "Department", "In Time", "Out Time", "Status"];
     const labourBody = currentLabour.map((r, i) => [
       String(i + 1),
       r.ID,
@@ -546,8 +767,8 @@
       r.Status
     ]);
 
-    drawPdfPage(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, false);
-    drawPdfPage(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, true);
+    drawPdfPage(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, "landscape", false, logoInfo);
+    drawPdfPage(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, "portrait", true, logoInfo);
 
     doc.save(`Attendance_Report_${dateStr}.pdf`);
     document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded 2-page PDF report.`;
@@ -598,17 +819,17 @@
     }
 
     let html = `<p class="note">Saved days in ${month}: <strong>${dayKeys.length}</strong> (${dayKeys.join(", ")})</p>`;
-    html += `<h3>Staff Monthly Summary</h3><table><thead><tr><th>ID</th><th>Name</th><th>Designation</th><th>Present</th><th>Late</th><th>Absent</th><th>Casual</th></tr></thead><tbody>`;
-    Object.values(staffSummary).forEach(x => {
-      html += `<tr><td>${x.ID}</td><td>${x.Name}</td><td>${x.Designation}</td><td>${x.Present}</td><td>${x.Late}</td><td>${x.Absent}</td><td>${x.Casual}</td></tr>`;
+    html += `<h3>Staff Monthly Summary</h3><div class="table-responsive"><table><thead><tr><th>SL</th><th>ID</th><th>Name</th><th>Designation</th><th>Present</th><th>Late</th><th>Absent</th><th>Casual</th></tr></thead><tbody>`;
+    Object.values(staffSummary).forEach((x, i) => {
+      html += `<tr><td>${i + 1}</td><td>${x.ID}</td><td>${x.Name}</td><td>${x.Designation}</td><td>${x.Present}</td><td>${x.Late}</td><td>${x.Absent}</td><td>${x.Casual}</td></tr>`;
     });
-    html += `</tbody></table>`;
+    html += `</tbody></table></div>`;
 
-    html += `<h3 style="margin-top:16px;">Daily Labour Monthly Working Days</h3><table><thead><tr><th>ID</th><th>Name</th><th>Total Working Days (Present+Late)</th></tr></thead><tbody>`;
-    Object.values(labourDays).forEach(x => {
-      html += `<tr><td>${x.ID}</td><td>${x.Name}</td><td>${x.WorkingDays}</td></tr>`;
+    html += `<h3>Daily Labour Monthly Working Days</h3><div class="table-responsive"><table><thead><tr><th>SL</th><th>ID</th><th>Name</th><th>Total Working Days (Present+Late)</th></tr></thead><tbody>`;
+    Object.values(labourDays).forEach((x, i) => {
+      html += `<tr><td>${i + 1}</td><td>${x.ID}</td><td>${x.Name}</td><td>${x.WorkingDays}</td></tr>`;
     });
-    html += `</tbody></table>`;
+    html += `</tbody></table></div>`;
 
     document.getElementById("monthlyWrap").innerHTML = html;
   }
@@ -625,4 +846,4 @@
   };
 </script>
 </body>
-  </html>
+</html>
