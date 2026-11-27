@@ -48,7 +48,7 @@
       border-top: 4px solid var(--primary);
       border-radius: 12px;
       padding: 20px 24px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
       display: flex;
       flex-wrap: wrap;
@@ -69,6 +69,27 @@
       border: 1px solid var(--border);
       background: var(--surface-soft);
       padding: 4px;
+    }
+    .nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .nav-btn {
+      background: var(--surface);
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .nav-btn.active {
+      background: var(--primary);
+      color: #ffffff;
     }
     .card {
       background: var(--surface);
@@ -144,6 +165,20 @@
       min-width: 150px;
       border-color: #d97706;
       background: #fffbeb;
+    }
+    input[type="text"].contact-edit {
+      width: 100%;
+      min-width: 130px;
+      padding: 6px 8px;
+      font-size: 12.5px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #f8fafc;
+    }
+    input[type="text"].contact-edit:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #eff6ff;
     }
     .controls-row {
       display: flex;
@@ -263,6 +298,88 @@
       font-weight: 600;
       color: var(--primary);
     }
+
+    /* Printable Contact Sheet Styling */
+    .print-only-header, .print-only-footer {
+      display: none;
+    }
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        color: #0f172a !important;
+        font-size: 10px;
+      }
+      .no-print, .nav-tabs, .top-banner, #attendanceView {
+        display: none !important;
+      }
+      .container, .card {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+      .print-only-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1.5px solid #1e3a8a;
+        padding-bottom: 6px;
+        margin-bottom: 10px;
+      }
+      .print-only-header h2 {
+        margin: 0;
+        font-size: 14px;
+        color: #1e3a8a;
+      }
+      .print-only-header p {
+        margin: 2px 0 0;
+        font-size: 9px;
+        color: #475569;
+      }
+      .print-only-header img {
+        height: 42px;
+        width: auto;
+        object-fit: contain;
+      }
+      .table-responsive {
+        overflow: visible !important;
+        border: 1px solid #cbd5e1 !important;
+      }
+      table {
+        font-size: 8.5px !important;
+        width: 100% !important;
+      }
+      th, td {
+        padding: 3.5px 5px !important;
+        white-space: normal !important;
+      }
+      input[type="text"].contact-edit {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        min-width: 0 !important;
+        font-size: 8.5px !important;
+        color: #0f172a !important;
+      }
+      .print-only-footer {
+        display: block !important;
+        margin-top: 12px;
+        font-size: 9px;
+        color: #334155;
+      }
+      .print-sig-line {
+        display: inline-block;
+        width: 125px;
+        border-bottom: 1.2px solid #1e3a8a;
+        margin: 2px 0 3px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -277,62 +394,104 @@
     </div>
   </div>
 
-  <div class="card">
-    <h2>Upload Attendance Files</h2>
-    <p class="subtitle">Upload Narayanganj CSV/XLSX file + optional Dhaka CSV/XLSX file (for cross-unit staff like SCI530).</p>
+  <div class="nav-tabs">
+    <button type="button" id="tabAttendanceBtn" class="nav-btn active" onclick="switchView('attendance')">Attendance Reports</button>
+    <button type="button" id="tabContactsBtn" class="nav-btn" onclick="switchView('contacts')">Office Staff Contacts (25)</button>
+  </div>
 
-    <div class="grid-2" style="margin-top: 14px;">
-      <div class="upload-box">
-        <label class="field-label" for="plantFile">1. Narayanganj / Plant Attendance File (Required)</label>
-        <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" />
+  <!-- ATTENDANCE VIEW -->
+  <div id="attendanceView">
+    <div class="card">
+      <h2>Upload Attendance Files</h2>
+      <p class="subtitle">Upload Narayanganj CSV/XLSX file + optional Dhaka CSV/XLSX file (for cross-unit staff like SCI530).</p>
+
+      <div class="grid-2" style="margin-top: 14px;">
+        <div class="upload-box">
+          <label class="field-label" for="plantFile">1. Narayanganj / Plant Attendance File (Required)</label>
+          <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" />
+        </div>
+        <div class="upload-box">
+          <label class="field-label" for="dhakaFile">2. Dhaka File (Optional — for SCI530 Md Zahidul Islam)</label>
+          <input type="file" id="dhakaFile" accept=".csv,.xlsx,.xls" />
+        </div>
       </div>
-      <div class="upload-box">
-        <label class="field-label" for="dhakaFile">2. Dhaka File (Optional — for SCI530 Md Zahidul Islam)</label>
-        <input type="file" id="dhakaFile" accept=".csv,.xlsx,.xls" />
+
+      <div class="controls-row">
+        <label class="field-label" for="reportDate" style="margin:0;">Report Date:</label>
+        <input type="date" id="reportDate" value="2026-11-26" />
+        <button onclick="processFiles()">Load & Filter Reports</button>
       </div>
     </div>
 
-    <div class="controls-row">
-      <label class="field-label" for="reportDate" style="margin:0;">Report Date:</label>
-      <input type="date" id="reportDate" value="2026-11-26" />
-      <button onclick="processFiles()">Load & Filter Reports</button>
+    <div class="card" id="staffSection" style="display:none;">
+      <h2>Office Staff Attendance List</h2>
+      <div class="stats" id="staffStats"></div>
+      <div class="table-responsive" id="staffTableWrap"></div>
+    </div>
+
+    <div class="card" id="labourSection" style="display:none;">
+      <h2>Daily Labour Attendance List (Present & Late Only — No Remarks)</h2>
+      <div class="stats" id="labourStats"></div>
+      <div class="table-responsive" id="labourTableWrap"></div>
+    </div>
+
+    <div class="card" id="actionSection" style="display:none;">
+      <h2>Save & Export Reports</h2>
+      <p class="subtitle">Save daily attendance data and export Excel (.xlsx) or 2-page A4 PDF with company logo.</p>
+      <div class="controls-row" style="border-top:none; padding-top:6px; margin-top:8px;">
+        <button onclick="saveDailyData()">Save Daily Data</button>
+        <button class="secondary" onclick="saveAndDownloadExcel()">Save & Download Excel (.xlsx)</button>
+        <button class="pdf-btn" onclick="saveAndDownloadPDF()">Save & Download PDF (2 A4 Pages)</button>
+      </div>
+      <div id="saveMsg" class="note status-banner"></div>
+    </div>
+
+    <div class="card">
+      <h2>Monthly Report (From Saved Daily Data in This Browser)</h2>
+      <div class="controls-row" style="border-top:none; padding-top:0; margin-top:8px;">
+        <label class="field-label" for="monthSelect" style="margin:0;">Select Month:</label>
+        <select id="monthSelect" onchange="renderMonthly()">
+          <option value="2026-11">2026-11</option>
+        </select>
+        <button onclick="renderMonthly()">View Monthly Summary</button>
+        <button class="danger" onclick="clearSavedData()">Clear Saved Browser Data</button>
+      </div>
+      <div id="monthlyWrap" style="margin-top:14px;"></div>
     </div>
   </div>
 
-  <div class="card" id="staffSection" style="display:none;">
-    <h2>Office Staff Attendance List</h2>
-    <div class="stats" id="staffStats"></div>
-    <div class="table-responsive" id="staffTableWrap"></div>
-  </div>
+  <!-- OFFICE STAFF CONTACTS VIEW -->
+  <div id="contactsView" style="display:none;">
+    <div class="card">
+      <div class="print-only-header">
+        <div>
+          <h2>Shodesh Chemical Industries</h2>
+          <p>174/4 Muradpur, Bandar, Narayanganj — Office Staff Contact Directory (25 Staff)</p>
+        </div>
+        <img src="logo.png" alt="Company Logo" onerror="this.style.display='none'" />
+      </div>
 
-  <div class="card" id="labourSection" style="display:none;">
-    <h2>Daily Labour Attendance List (Present & Late Only — No Remarks)</h2>
-    <div class="stats" id="labourStats"></div>
-    <div class="table-responsive" id="labourTableWrap"></div>
-  </div>
+      <div class="no-print">
+        <h2>Office Staff Contact Directory (25 Staff)</h2>
+        <p class="subtitle">Edit missing phone numbers or email addresses directly in the table, click <strong>Save Contacts</strong>, or print the directory.</p>
+        <div class="controls-row" style="border-top:none; padding-top:6px; margin-top:8px; margin-bottom:14px;">
+          <button type="button" onclick="saveContactsData()">Save Contacts</button>
+          <button type="button" class="secondary" onclick="printContactsSheet()">Print Contact List</button>
+          <button type="button" class="danger" onclick="resetContactsDefault()">Reset Default 25</button>
+        </div>
+        <div id="contactSaveMsg" class="note status-banner" style="margin-bottom:12px;"></div>
+      </div>
 
-  <div class="card" id="actionSection" style="display:none;">
-    <h2>Save & Export Reports</h2>
-    <p class="subtitle">Save daily attendance data and export Excel (.xlsx) or 2-page A4 PDF with company logo.</p>
-    <div class="controls-row" style="border-top:none; padding-top:6px; margin-top:8px;">
-      <button onclick="saveDailyData()">Save Daily Data</button>
-      <button class="secondary" onclick="saveAndDownloadExcel()">Save & Download Excel (.xlsx)</button>
-      <button class="pdf-btn" onclick="saveAndDownloadPDF()">Save & Download PDF (2 A4 Pages)</button>
+      <div class="table-responsive" id="contactsTableWrap"></div>
+
+      <div class="print-only-footer">
+        <div>Reported by</div>
+        <div><strong>Md. Ibrahim Hossain</strong></div>
+        <div class="print-sig-line"></div>
+        <div>Responsible Laboratory Chemist</div>
+        <div style="margin-top:4px; font-style:italic; color:#64748b;">This document has been produced electronically and is valid without a signature.</div>
+      </div>
     </div>
-    <div id="saveMsg" class="note status-banner"></div>
-  </div>
-
-  <div class="card">
-    <h2>Monthly Report (From Saved Daily Data in This Browser)</h2>
-    <div class="controls-row" style="border-top:none; padding-top:0; margin-top:8px;">
-      <label class="field-label" for="monthSelect" style="margin:0;">Select Month:</label>
-      <select id="monthSelect" onchange="renderMonthly()">
-        <option value="2026-11">2026-11</option>
-      </select>
-      <button onclick="renderMonthly()">View Monthly Summary</button>
-      <button class="danger" onclick="clearSavedData()">Clear Saved Browser Data</button>
-    </div>
-    <div id="monthlyWrap" style="margin-top:14px;"></div>
   </div>
 </div>
 
@@ -350,8 +509,118 @@
     }
   };
 
+  const DEFAULT_25_CONTACTS = [
+    { name: "Md. Mohin Uddin", dept: "Admin", designation: "Manager", phone: "01730-735583", email: "factory2.mohin@shodesh-chemicals.com" },
+    { name: "Md. Shamim Farhad Hero", dept: "Commercial", designation: "Deputy Manager", phone: "01841-158598", email: "factory4.hero@shodesh-chemicals.com" },
+    { name: "Mohammad Robiul Islam", dept: "Accounts", designation: "Senior Executive", phone: "01841-158596", email: "factory3@shodesh-chemicals.com" },
+    { name: "Md. Saiful Islam Khan", dept: "Commercial", designation: "Executive", phone: "01841-158597", email: "factory5.enamul@shodesh-chemicals.com" },
+    { name: "Md. Al Amin Mondol", dept: "Commercial", designation: "Executive", phone: "8801841094670", email: "N/A" },
+    { name: "Mohammad Rahmatullah", dept: "Store", designation: "Executive", phone: "8801894712783", email: "N/A" },
+    { name: "Md. Ibrahim Hossain", dept: "Production", designation: "Assistant Chemist", phone: "8801841795095", email: "Asst.chemist@shodesh-chemicals.com" },
+    { name: "Md.Mohin Uddin (yeakub)", dept: "Production", designation: "Labor Supervisor", phone: "01841-150292", email: "N/A" },
+    { name: "Md. Delowar Hossin", dept: "Production", designation: "Labor Supervisor", phone: "01841-813047", email: "N/A" },
+    { name: "Md. Firoj Hosan", dept: "Mechanical", designation: "Mechanical Foreman", phone: "01841-094672", email: "N/A" },
+    { name: "Md Rafiqual Islam", dept: "Store", designation: "Store Keeper", phone: "01841-094663", email: "N/A" },
+    { name: "Md. Kaowsar Khan", dept: "Admin", designation: "Security Superviser", phone: "8801894883583", email: "N/A" },
+    { name: "Md. Azhar Ali", dept: "Electrical", designation: "Senior Electrician", phone: "01841-813049", email: "N/A" },
+    { name: "Md. Kawsar Mia", dept: "Mechanical", designation: "Welder", phone: "01618990259", email: "N/A" },
+    { name: "Mahamodur Rahman", dept: "Electrical", designation: "Electrician", phone: "8801894712765", email: "N/A" },
+    { name: "Md Mosaraf Hossain", dept: "Electrical", designation: "Electrician", phone: "880", email: "N/A" },
+    { name: "Md Nazirul Islam", dept: "Mechanical", designation: "Welder", phone: "8801824536628", email: "N/A" },
+    { name: "Mehadi Hasan", dept: "Accounts", designation: "Outdoor Staff", phone: "8801714094677", email: "N/A" },
+    { name: "Abu Hanef", dept: "Admin", designation: "Cook", phone: "01841-094658", email: "N/A" },
+    { name: "Md. Tamim ahmed", dept: "Admin", designation: "Office Peon", phone: "01841-813048", email: "N/A" },
+    { name: "Md Ibrahim Hossain", dept: "Admin", designation: "Security Guard", phone: "880", email: "N/A" },
+    { name: "Md. Zakir Hosen", dept: "Mechanical", designation: "Mechanical Helper", phone: "880", email: "N/A" },
+    { name: "Md. Shovo", dept: "Admin", designation: "Security Guard", phone: "880", email: "N/A" },
+    { name: "Yeakub Mia", dept: "Production", designation: "Labour Helper", phone: "01841-813045", email: "N/A" },
+    { name: "Md Zahidul Islam", dept: "Sales & Marketing", designation: "Senior Executive", phone: "8801841094652", email: "marketing2@shodesh-chemicals.com" }
+  ];
+
+  const CONTACT_STORAGE_KEY = "shodesh_25_staff_contacts_v1";
+  let staffContacts = [];
   let currentStaff = [];
   let currentLabour = [];
+
+  function switchView(viewName) {
+    const isContacts = viewName === "contacts";
+    document.getElementById("attendanceView").style.display = isContacts ? "none" : "block";
+    document.getElementById("contactsView").style.display = isContacts ? "block" : "none";
+    document.getElementById("tabAttendanceBtn").classList.toggle("active", !isContacts);
+    document.getElementById("tabContactsBtn").classList.toggle("active", isContacts);
+    if (isContacts) {
+      renderContactsTable();
+    }
+  }
+
+  function loadContacts() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(CONTACT_STORAGE_KEY) || "null");
+      if (Array.isArray(saved) && saved.length === 25) {
+        staffContacts = saved;
+        return;
+      }
+    } catch (e) {}
+    staffContacts = DEFAULT_25_CONTACTS.map(item => ({ ...item }));
+  }
+
+  function renderContactsTable() {
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>SL</th>
+            <th>Employee Name</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>Phone</th>
+            <th>Email</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    staffContacts.forEach((c, idx) => {
+      html += `
+        <tr>
+          <td>${idx + 1}</td>
+          <td><input type="text" class="contact-edit" value="${escapeAttr(c.name)}" oninput="staffContacts[${idx}].name = this.value" /></td>
+          <td><input type="text" class="contact-edit" value="${escapeAttr(c.dept)}" oninput="staffContacts[${idx}].dept = this.value" /></td>
+          <td><input type="text" class="contact-edit" value="${escapeAttr(c.designation)}" oninput="staffContacts[${idx}].designation = this.value" /></td>
+          <td><input type="text" class="contact-edit" value="${escapeAttr(c.phone)}" oninput="staffContacts[${idx}].phone = this.value" /></td>
+          <td><input type="text" class="contact-edit" value="${escapeAttr(c.email)}" oninput="staffContacts[${idx}].email = this.value" /></td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table>`;
+    document.getElementById("contactsTableWrap").innerHTML = html;
+  }
+
+  function escapeAttr(val) {
+    return String(val ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function saveContactsData() {
+    localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(staffContacts));
+    document.getElementById("contactSaveMsg").textContent = "All 25 office staff contacts saved in this browser.";
+  }
+
+  function resetContactsDefault() {
+    staffContacts = DEFAULT_25_CONTACTS.map(item => ({ ...item }));
+    localStorage.removeItem(CONTACT_STORAGE_KEY);
+    renderContactsTable();
+    document.getElementById("contactSaveMsg").textContent = "Reset to default 25 office staff contacts.";
+  }
+
+  function printContactsSheet() {
+    saveContactsData();
+    window.print();
+  }
 
   function norm(val) {
     return (val === null || val === undefined ? "" : String(val)).trim().toLowerCase();
@@ -498,7 +767,7 @@
         : statusBadge(r.Status);
 
       const remarkCell = needsRemark
-        ? `<input type="text" class="remark-input" placeholder="Write reason for ${r.Status}..." value="${r.Remarks || ""}" oninput="currentStaff[${idx}].Remarks = this.value" />`
+        ? `<input type="text" class="remark-input" placeholder="Write reason for ${r.Status}..." value="${escapeAttr(r.Remarks || "")}" oninput="currentStaff[${idx}].Remarks = this.value" />`
         : `<span style="color:#94a3b8;">—</span>`;
 
       html += `
@@ -673,7 +942,6 @@
     const leftMargin = 10;
     const rightMargin = 10;
 
-    // Header block from top of company name down to sub-title line
     const headerTopY = 7.2;
     const subTitleY = 23.2;
     const headerSpanHeight = subTitleY - headerTopY + 1.2;
@@ -689,13 +957,11 @@
     doc.text("174/4 Muradpur, Bandar, Narayanganj", leftMargin, 15.1);
     doc.text(`Date: ${dateStr}`, leftMargin, 19.0);
 
-    // Sub-title right below date
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9.6);
     doc.setTextColor(30, 64, 175);
     doc.text(subTitle, leftMargin, subTitleY);
 
-    // Large logo on the right spanning from top of company name to bottom of sub-title
     if (logoInfo && logoInfo.dataUrl) {
       const boxMaxH = headerSpanHeight;
       const boxMaxW = 36;
@@ -741,7 +1007,6 @@
       margin: { left: leftMargin, right: rightMargin, top: 25.4, bottom: 28.5 }
     });
 
-    // Reported by block: "Reported by" -> Name -> dash slightly wider than name -> Designation -> Electronic validity line
     const nameText = "Md. Ibrahim Hossain";
     const footerBottomAnchor = pageHeight - 10.2;
 
@@ -771,7 +1036,6 @@
     doc.setTextColor(71, 85, 105);
     doc.text("This document has been produced electronically and is valid without a signature.", leftMargin, footerBottomAnchor + 0.4);
 
-    // Very small print date/time and page number at the bottom footer
     doc.setFont("helvetica", "normal");
     doc.setFontSize(6.4);
     doc.setTextColor(100, 116, 139);
@@ -885,6 +1149,8 @@
   }
 
   window.onload = () => {
+    loadContacts();
+    renderContactsTable();
     const allSaved = JSON.parse(localStorage.getItem("attendance_records_v1") || "{}");
     populateMonthDropdown(Object.keys(allSaved));
   };
