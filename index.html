@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Daily & Monthly Attendance Report System</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -76,6 +78,12 @@
     button.secondary:hover {
       background: #1d4ed8;
     }
+    button.pdf-btn {
+      background: #7c3aed;
+    }
+    button.pdf-btn:hover {
+      background: #6d28d9;
+    }
     button.danger {
       background: #dc2626;
     }
@@ -129,11 +137,11 @@
 <div class="container">
   <div class="card">
     <h1>Daily & Monthly Attendance Report Generator</h1>
-    <p class="note">Step 1 Preview: Upload Kaspur CSV/XLSX + optional Dhaka CSV/XLSX (for cross-unit staff like SCI530).</p>
+    <p class="note">Upload Kachpur CSV/XLSX + optional Dhaka CSV/XLSX (for cross-unit staff like SCI530).</p>
 
     <div class="grid-2">
       <div class="upload-box">
-        <label>1. Kaspur / Plant Attendance File (Required)</label>
+        <label>1. Kachpur / Plant Attendance File (Required)</label>
         <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" />
       </div>
       <div class="upload-box">
@@ -150,21 +158,23 @@
   </div>
 
   <div class="card" id="staffSection" style="display:none;">
-    <h2>Staff Attendance Report</h2>
+    <h2>Office Staff Attendance List</h2>
     <div class="stats" id="staffStats"></div>
     <div id="staffTableWrap"></div>
   </div>
 
   <div class="card" id="labourSection" style="display:none;">
-    <h2>Daily Labour Attendance Report (Present & Late Only — No Remarks)</h2>
+    <h2>Daily Labour Attendance List (Present & Late Only — No Remarks)</h2>
     <div class="stats" id="labourStats"></div>
     <div id="labourTableWrap"></div>
   </div>
 
   <div class="card" id="actionSection" style="display:none;">
-    <h2>Save & Download Excel Files</h2>
-    <button class="secondary" onclick="saveAndDownload()">Save Daily Data & Download Both Excel Files</button>
-    <span id="saveMsg" class="note"></span>
+    <h2>Save & Export Reports</h2>
+    <button onclick="saveDailyData()">Save Daily Data</button>
+    <button class="secondary" onclick="saveAndDownloadExcel()">Save & Download Excel (.xlsx)</button>
+    <button class="pdf-btn" onclick="saveAndDownloadPDF()">Save & Download PDF (2 Pages)</button>
+    <div id="saveMsg" class="note"></div>
   </div>
 
   <div class="card">
@@ -180,7 +190,6 @@
 </div>
 
 <script>
-  // Cross-unit staff IDs to pull from Dhaka file if not in Plant file
   const CROSS_UNIT_IDS = ["sci530"];
   const CROSS_UNIT_DEFAULTS = {
     "sci530": {
@@ -248,7 +257,7 @@
     const dhakaInput = document.getElementById("dhakaFile");
 
     if (!plantInput.files.length) {
-      alert("Please select the Kaspur / Plant attendance file first.");
+      alert("Please select the Kachpur / Plant attendance file first.");
       return;
     }
 
@@ -261,7 +270,6 @@
       dhakaRows = dhakaRaw.map(normalizeRow);
     }
 
-    // Separate Daily Labour vs Staff from Plant file
     currentLabour = plantRows.filter(r => {
       const isLabour = norm(r.Designation) === "daily labour";
       const isPresentOrLate = r.Status === "present" || r.Status === "late";
@@ -270,7 +278,6 @@
 
     currentStaff = plantRows.filter(r => norm(r.Designation) !== "daily labour");
 
-    // Merge Cross-Unit Staff (e.g., SCI530) from Dhaka file or manual fallback
     const existingIds = new Set(currentStaff.map(r => norm(r.ID)));
     for (const cid of CROSS_UNIT_IDS) {
       if (!existingIds.has(cid)) {
@@ -419,17 +426,8 @@
     document.getElementById("labourTableWrap").innerHTML = html;
   }
 
-  function downloadExcel(rows, filename) {
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-    XLSX.writeFile(wb, filename);
-  }
-
-  function saveAndDownload() {
+  function saveDailyData() {
     const dateStr = document.getElementById("reportDate").value || "2026-11-26";
-
-    // Save to localStorage for monthly view
     const storageKey = "attendance_records_v1";
     const allSaved = JSON.parse(localStorage.getItem(storageKey) || "{}");
     allSaved[dateStr] = {
@@ -439,8 +437,19 @@
     };
     localStorage.setItem(storageKey, JSON.stringify(allSaved));
     populateMonthDropdown(Object.keys(allSaved));
+    return dateStr;
+  }
 
-    // Prepare Staff export rows
+  function downloadExcel(rows, filename) {
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+    XLSX.writeFile(wb, filename);
+  }
+
+  function saveAndDownloadExcel() {
+    const dateStr = saveDailyData();
+
     const staffExport = currentStaff.map((r, i) => ({
       SL: i + 1,
       ID: r.ID,
@@ -454,7 +463,6 @@
       Remarks: (r.Status === "absent" || r.Status === "late") ? (r.Remarks || "") : ""
     }));
 
-    // Prepare Daily Labour export rows (no Remarks column)
     const labourExport = currentLabour.map((r, i) => ({
       SL: i + 1,
       ID: r.ID,
@@ -471,7 +479,81 @@
       downloadExcel(labourExport, `Daily_Labour_Attendance_${dateStr}.xlsx`);
     }, 300);
 
-    document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded both Excel files!`;
+    document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded both Excel files.`;
+  }
+
+  function drawPdfPage(doc, dateStr, subTitle, headRow, bodyRows, isSecondPage) {
+    if (isSecondPage) {
+      doc.addPage();
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("Shodesh Chemical Industries", 14, 16);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("174/4 Muradpur, Bandar, Narayanganj", 14, 22);
+    doc.text(`Date: ${dateStr}`, 14, 28);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(subTitle, 14, 35);
+
+    doc.autoTable({
+      startY: 39,
+      head: [headRow],
+      body: bodyRows,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [15, 118, 110] },
+      margin: { left: 14, right: 14, bottom: 26 }
+    });
+
+    const pageHeight = doc.internal.pageSize.getHeight();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("- Reported by Md. Ibrahim Hossain, Responsible Laboratory Chemist", 14, pageHeight - 16);
+    doc.text("This document has been produced electronically and is valid without a signature.", 14, pageHeight - 10);
+  }
+
+  function saveAndDownloadPDF() {
+    const dateStr = saveDailyData();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+    const staffHead = ["#", "ID", "Name", "Designation", "Dept", "In", "Out", "Status", "Remarks"];
+    const staffBody = currentStaff.map((r, i) => [
+      String(i + 1),
+      r.ID,
+      r.Name,
+      r.Designation,
+      r.Department,
+      r.In_Time,
+      r.Out_Time,
+      r.Status,
+      (r.Status === "absent" || r.Status === "late") ? (r.Remarks || "") : ""
+    ]);
+
+    const labourHead = ["#", "ID", "Name", "Designation", "Department", "In Time", "Out Time", "Status"];
+    const labourBody = currentLabour.map((r, i) => [
+      String(i + 1),
+      r.ID,
+      r.Name,
+      r.Designation,
+      r.Department,
+      r.In_Time,
+      r.Out_Time,
+      r.Status
+    ]);
+
+    // Page 1: Office Staff Attendance List
+    drawPdfPage(doc, dateStr, "Office Staff Attendance List", staffHead, staffBody, false);
+
+    // Page 2: Daily Labour Attendance List
+    drawPdfPage(doc, dateStr, "Daily Labour Attendance List", labourHead, labourBody, true);
+
+    doc.save(`Attendance_Report_${dateStr}.pdf`);
+    document.getElementById("saveMsg").textContent = `Saved for ${dateStr} & downloaded 2-page PDF report.`;
   }
 
   function populateMonthDropdown(dates) {
