@@ -506,7 +506,7 @@
         <div class="grid-2" style="margin-top: 14px;">
           <div class="upload-box">
             <label class="field-label" for="plantFile">1. Narayanganj / Plant Attendance File (Required)</label>
-            <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" />
+            <input type="file" id="plantFile" accept=".csv,.xlsx,.xls" onchange="autoDetectReportDateFromFile(this)" />
           </div>
           <div class="upload-box">
             <label class="field-label" for="dhakaFile">2. Dhaka File (Optional — for SCI530 Md Zahidul Islam)</label>
@@ -516,7 +516,7 @@
 
         <div class="controls-row">
           <label class="field-label" for="reportDate" style="margin:0;">Report Date:</label>
-          <input type="date" id="reportDate" value="2026-11-26" />
+          <input type="date" id="reportDate" />
           <button onclick="processFiles()">Load & Filter Reports</button>
         </div>
       </div>
@@ -548,9 +548,7 @@
         <h2>Monthly Report (From Saved Daily Data in This Browser)</h2>
         <div class="controls-row" style="border-top:none; padding-top:0; margin-top:8px;">
           <label class="field-label" for="monthSelect" style="margin:0;">Select Month:</label>
-          <select id="monthSelect" onchange="renderMonthly()">
-            <option value="2026-11">2026-11</option>
-          </select>
+          <select id="monthSelect" onchange="renderMonthly()"></select>
           <button onclick="renderMonthly()">View Monthly Summary</button>
           <button class="danger" onclick="clearSavedData()">Clear Saved Browser Data</button>
         </div>
@@ -837,6 +835,30 @@
   let currentStaff = [];
   let currentLabour = [];
 
+  // বর্তমান তারিখ (YYYY-MM-DD) পাওয়ার ফাংশন
+  function getTodayISO() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // বর্তমান মাস (YYYY-MM) পাওয়ার ফাংশন
+  function getCurrentMonthISO() {
+    return getTodayISO().slice(0, 7);
+  }
+
+  // ফাইলের নাম থেকে স্বয়ংক্রিয়ভাবে তারিখ (যেমন: 2026-11-28) শনাক্ত করার ফাংশন
+  function autoDetectReportDateFromFile(input) {
+    if (!input.files || !input.files.length) return;
+    const fileName = input.files[0].name;
+    const match = /(\d{4}-\d{2}-\d{2})/.exec(fileName);
+    if (match) {
+      document.getElementById("reportDate").value = match[1];
+    }
+  }
+
   function isAuthenticated() {
     return sessionStorage.getItem(AUTH_SESSION_KEY) === "granted";
   }
@@ -989,9 +1011,10 @@
     const months = [...new Set(dates.map(d => d.slice(0, 7)))].sort().reverse();
     const monthSel = document.getElementById("indMonthSelect");
     const prevMonth = monthSel.value;
+    const currentMonth = getCurrentMonthISO();
 
     if (!months.length) {
-      monthSel.innerHTML = `<option value="2026-11">2026-11</option>`;
+      monthSel.innerHTML = `<option value="${currentMonth}">${currentMonth}</option>`;
     } else {
       monthSel.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join("");
       if (months.includes(prevMonth)) monthSel.value = prevMonth;
@@ -1656,7 +1679,7 @@
   }
 
   function saveDailyData() {
-    const dateStr = document.getElementById("reportDate").value || "2026-11-26";
+    const dateStr = document.getElementById("reportDate").value || getTodayISO();
     const storageKey = "attendance_records_v1";
     const allSaved = JSON.parse(localStorage.getItem(storageKey) || "{}");
     allSaved[dateStr] = {
@@ -1930,8 +1953,9 @@
     const months = [...new Set(dates.map(d => d.slice(0, 7)))].sort().reverse();
     const sel = document.getElementById("monthSelect");
     const currentVal = sel.value;
+    const currentMonth = getCurrentMonthISO();
     if (!months.length) {
-      sel.innerHTML = `<option value="2026-11">2026-11</option>`;
+      sel.innerHTML = `<option value="${currentMonth}">${currentMonth}</option>`;
       return;
     }
     sel.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join("");
@@ -1995,6 +2019,9 @@
   }
 
   window.onload = () => {
+    // পেজ লোড হওয়ার সাথে সাথেই আজকের তারিখ স্বয়ংক্রিয়ভাবে সেট করা
+    document.getElementById("reportDate").value = getTodayISO();
+
     applyAuthState();
     loadEmployees();
     loadContacts();
