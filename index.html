@@ -435,7 +435,7 @@
         margin-top: 12px;
         font-family: Arial, Helvetica, sans-serif !important;
         font-size: 9px;
-        color: #334155;
+        color: #1e293b;
       }
       .print-sig-line {
         display: inline-block;
@@ -590,7 +590,7 @@
           <div><strong>Md. Ibrahim Hossain</strong></div>
           <div class="print-sig-line"></div>
           <div>Responsible Laboratory Chemist</div>
-          <div style="margin-top:4px; font-style:italic; color:#64748b;">This document has been produced electronically and is valid without a signature.</div>
+          <div style="margin-top:4px; font-style:italic; color:#334155;">This document has been produced electronically and is valid without a signature.</div>
         </div>
       </div>
     </div>
@@ -666,7 +666,7 @@
         <div><strong>Md. Ibrahim Hossain</strong></div>
         <div class="print-sig-line"></div>
         <div>Responsible Laboratory Chemist</div>
-        <div style="margin-top:4px; font-style:italic; color:#64748b;">This document has been produced electronically and is valid without a signature.</div>
+        <div style="margin-top:4px; font-style:italic; color:#334155;">This document has been produced electronically and is valid without a signature.</div>
       </div>
     </div>
   </div>
@@ -742,7 +742,7 @@
         <div><strong>Md. Ibrahim Hossain</strong></div>
         <div class="print-sig-line"></div>
         <div>Responsible Laboratory Chemist</div>
-        <div style="margin-top:4px; font-style:italic; color:#64748b;">This document has been produced electronically and is valid without a signature.</div>
+        <div style="margin-top:4px; font-style:italic; color:#334155;">This document has been produced electronically and is valid without a signature.</div>
       </div>
     </div>
   </div>
@@ -1805,15 +1805,15 @@
     doc.setTextColor(71, 85, 105);
     doc.text("174/4 Muradpur, Bandar, Narayanganj", leftMargin, 18.4);
 
-    // Date of attendance লেবেলটি আগের মতোই রেখে শুধু তারিখটিকে গাঢ় কালো ও বোল্ড করা হয়েছে
+    // Date of attendance (DD.MM.YYYY) আগের মতো রেখে তারিখটি শুধু ব্লাক আর বোল্ড করা হয়েছে
     const dateLabelPrefix = "Date of attendance (DD.MM.YYYY) ";
-    const formattedDateVal = formatDateDDMMYYYY(dateStr);
+    const formattedDateText = formatDateDDMMYYYY(dateStr);
     doc.text(dateLabelPrefix, leftMargin, 22.3);
     const prefixWidth = doc.getTextWidth(dateLabelPrefix);
 
     doc.setFont("arial", "bold");
     doc.setTextColor(15, 23, 42);
-    doc.text(formattedDateVal, leftMargin + prefixWidth, 22.3);
+    doc.text(formattedDateText, leftMargin + prefixWidth, 22.3);
 
     doc.setFont("arial", "bold");
     doc.setFontSize(9.6);
@@ -1904,9 +1904,10 @@
     doc.setTextColor(71, 85, 105);
     doc.text("This document has been produced electronically and is valid without a signature.", leftMargin, footerBottomAnchor + 0.4);
 
+    // Printed date, time ও Page number স্পষ্ট কালোর কাছাকাছি করা হয়েছে
     doc.setFont("arial", "normal");
-    doc.setFontSize(6.4);
-    doc.setTextColor(100, 116, 139);
+    doc.setFontSize(7.0);
+    doc.setTextColor(30, 41, 59);
     doc.text(`Printed: ${printedAtText}`, leftMargin, pageHeight - 7.2);
     doc.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - rightMargin, pageHeight - 7.2, { align: "right" });
   }
