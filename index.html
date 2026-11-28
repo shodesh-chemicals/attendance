@@ -835,7 +835,6 @@
   let currentStaff = [];
   let currentLabour = [];
 
-  // বর্তমান তারিখ (YYYY-MM-DD) পাওয়ার ফাংশন
   function getTodayISO() {
     const now = new Date();
     const yyyy = now.getFullYear();
@@ -844,12 +843,10 @@
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  // বর্তমান মাস (YYYY-MM) পাওয়ার ফাংশন
   function getCurrentMonthISO() {
     return getTodayISO().slice(0, 7);
   }
 
-  // ফাইলের নাম থেকে স্বয়ংক্রিয়ভাবে তারিখ (যেমন: 2026-11-28) শনাক্ত করার ফাংশন
   function autoDetectReportDateFromFile(input) {
     if (!input.files || !input.files.length) return;
     const fileName = input.files[0].name;
@@ -1807,7 +1804,16 @@
     doc.setFontSize(8.4);
     doc.setTextColor(71, 85, 105);
     doc.text("174/4 Muradpur, Bandar, Narayanganj", leftMargin, 18.4);
-    doc.text(`Date of attendance (DD.MM.YYYY) ${formatDateDDMMYYYY(dateStr)}`, leftMargin, 22.3);
+
+    // Date of attendance লেবেলটি আগের মতোই রেখে শুধু তারিখটিকে গাঢ় কালো ও বোল্ড করা হয়েছে
+    const dateLabelPrefix = "Date of attendance (DD.MM.YYYY) ";
+    const formattedDateVal = formatDateDDMMYYYY(dateStr);
+    doc.text(dateLabelPrefix, leftMargin, 22.3);
+    const prefixWidth = doc.getTextWidth(dateLabelPrefix);
+
+    doc.setFont("arial", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text(formattedDateVal, leftMargin + prefixWidth, 22.3);
 
     doc.setFont("arial", "bold");
     doc.setFontSize(9.6);
@@ -2019,7 +2025,6 @@
   }
 
   window.onload = () => {
-    // পেজ লোড হওয়ার সাথে সাথেই আজকের তারিখ স্বয়ংক্রিয়ভাবে সেট করা
     document.getElementById("reportDate").value = getTodayISO();
 
     applyAuthState();
